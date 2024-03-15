@@ -1,0 +1,85 @@
+{
+  "eslint.validate": [
+    "html",
+    "javascript",
+    "typescript",
+    "typescriptreact",
+    "markdown",
+    "json"
+  ],
+  "editor.formatOnType": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.quickSuggestions": {
+    "other": false,
+    "comments": false,
+    "strings": false
+  },
+  "editor.quickSuggestionsDelay": 100,
+  "editor.snippetSuggestions": "none",
+  "editor.wordBasedSuggestions": "off", // disable tab expansion because it conflict with github-copilot
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "prettier.singleQuote": true,
+  "eslint.workingDirectories": [
+    {
+      "directory": "./",
+      "changeProcessCWD": true
+    },
+    {
+      "directory": "./app",
+      "changeProcessCWD": true
+    },
+    {
+      "directory": "./website",
+      "changeProcessCWD": true
+    }
+  ],
+  "markdown.extension.print.onFileSave": false,
+  "markdown.extension.toc.orderedList": true,
+  "javascript.validate.enable": true,
+  "standard.enable": false,
+  "markdown.extension.toc.levels": "2..6",
+  "markdown.extension.toc.githubCompatibility": true,
+  "markdownlint.run": "onSave",
+  "editor.tabSize": 2,
+  "cSpell.words": [
+    "Sourcegraph"
+  ],
+  "files.watcherExclude": {
+    "**/target": true
+  },
+  "python.testing.unittestEnabled": false,
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    ".",
+    "-p",
+    "*test.py"
+  ],
+  "python.testing.promptToConfigure": false,
+  "python.testing.pytestEnabled": false,
+  "python.testing.nosetestsEnabled": false,
+  "python.linting.pylintEnabled": true,
+  "java.test.config": [
+    {
+      "name": "myConfig",
+      "workingDirectory": "${workspaceFolder}"
+    }
+  ],
+  "java.test.defaultConfig": "myConfig",
+  "markdownShortcuts.bullets.marker": "-",
+  "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
+  "java.format.settings.profile": "GoogleStyle",
+  "java.checkstyle.configuration": "",
+  "java.debug.settings.console": "internalConsole",
+  "markdown.extension.list.indentationSize": "inherit",
+  "python.linting.enabled": true,
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "c3.rootPackage": ""
+}
