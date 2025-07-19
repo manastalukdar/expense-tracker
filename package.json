@@ -15,6 +15,7 @@
     "mobile:test": "npm run test --workspace=apps/mobile",
     "mobile:lint": "npm run lint --workspace=apps/mobile",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
@@ -25,10 +26,13 @@
     "deps:interactive": "ncu --workspaces --root --interactive"
   },
   "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
     "eslint": "^9.31.0",
+    "jest": "^30.0.4",
     "prettier": "^3.6.2",
-    "typescript": "^5.8.3",
-    "jest": "^30.0.4"
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=18.0.0",

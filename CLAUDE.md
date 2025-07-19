@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `npm install` - Install all dependencies across workspaces
 - `npm run lint` - Run linting across all workspaces
+- `npm run lint:fix` - Run linting with auto-fix across all workspaces
 - `npm run test` - Run tests across all workspaces
 - `npm run build` - Build all packages
 - `npm run clean` - Clean all workspaces
@@ -112,9 +113,17 @@ After installing dependencies, run: `cd apps/mobile/ios && pod install && cd ../
 
 - All code must be TypeScript typed
 - Use PascalCase for components, camelCase for functions
-- Follow existing ESLint rules (ESLint 9.15.0)
-- Code formatted with Prettier 3.3.0
+- Follow ESLint v9 flat config rules with TypeScript support
+- Code formatted with Prettier 3.6.2
 - Database operations must be async and handle errors
+
+### Code Quality Tools
+
+- **ESLint v9**: Flat config format with TypeScript rules
+- **Prettier**: Code formatting (integrated with ESLint)
+- **TypeScript**: Strict type checking enabled
+- Run `npm run lint` to check code quality
+- Run `npm run lint:fix` to auto-fix linting issues
 
 ### Testing Strategy
 
