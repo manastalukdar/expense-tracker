@@ -2,6 +2,12 @@
 
 A modern, cross-platform expense tracking application built with React Native and a monorepo architecture.
 
+[![CI/CD Pipeline](https://github.com/manastalukdar/expense-tracker/actions/workflows/main.yml/badge.svg)](https://github.com/manastalukdar/expense-tracker/actions/workflows/main.yml)
+[![Code Quality](https://github.com/manastalukdar/expense-tracker/actions/workflows/linter.yml/badge.svg)](https://github.com/manastalukdar/expense-tracker/actions/workflows/linter.yml)
+[![React Native](https://github.com/manastalukdar/expense-tracker/actions/workflows/react-native.yml/badge.svg)](https://github.com/manastalukdar/expense-tracker/actions/workflows/react-native.yml)
+[![Security](https://github.com/manastalukdar/expense-tracker/actions/workflows/security.yml/badge.svg)](https://github.com/manastalukdar/expense-tracker/actions/workflows/security.yml)
+[![OSSAR](https://github.com/manastalukdar/expense-tracker/actions/workflows/ossar.yml/badge.svg)](https://github.com/manastalukdar/expense-tracker/actions/workflows/ossar.yml)
+
 [![React Native](https://img.shields.io/badge/React%20Native-0.75.5-blue)](https://reactnative.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6.0-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

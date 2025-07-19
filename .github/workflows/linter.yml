@@ -1,60 +1,86 @@
----
-###########################
-###########################
-## Linter GitHub Actions ##
-###########################
-###########################
-name: Lint Code Base
+name: Code Quality
 
-#
-# Documentation:
-# https://help.github.com/en/articles/workflow-syntax-for-github-actions
-#
-
-#############################
-# Start the job on all push #
-#############################
 on:
   push:
-    # branches-ignore: [main]
-    # Remove the line above to run when pushing to main
+    branches: [ main, develop ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
-###############
-# Set the Job #
-###############
+env:
+  NODE_VERSION: '18.x'
+
 jobs:
-  build:
-    # Name the Job
-    name: Lint Code Base
-    # Set the agent to run on
+  eslint:
+    name: ESLint
     runs-on: ubuntu-latest
-
-    ##################
-    # Load all steps #
-    ##################
+    
     steps:
-      ##########################
-      # Checkout the code base #
-      ##########################
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run ESLint
+        run: npm run lint
+        
+      - name: Run ESLint with annotations
+        uses: ataylorme/eslint-annotate-action@v3
+        if: failure()
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "eslint-report.json"
 
-      ################################
-      # Run Linter against code base #
-      ################################
-      - name: Lint Code Base
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check Prettier formatting
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,md}"
+
+  super-linter:
+    name: Super Linter
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Run Super Linter
         uses: github/super-linter@v6
         env:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_EXCLUDE: .*(website/.*.md\.github|\.vscode|CODE_OF_CONDUCT.md|README.md|documentation).*
+          FILTER_REGEX_EXCLUDE: .*(node_modules|\.git|documentation|\.vscode|CODE_OF_CONDUCT\.md|LICENSE).*
           JAVASCRIPT_DEFAULT_STYLE: prettier
-          LINTER_RULES_PATH: "."
-          EDITORCONFIG_FILE_NAME: .editorconfig
-          MARKDOWN_CONFIG_FILE: .markdownlint.json
-          VALIDATE_PYTHON_BLACK: false
-          VALIDATE_PYTHON_FLAKE8: false
-          VALIDATE_PYTHON_ISORT: false
+          TYPESCRIPT_DEFAULT_STYLE: prettier
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_JSON: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_YAML: true
+          VALIDATE_DOCKERFILE: false
+          VALIDATE_PYTHON: false
+          VALIDATE_JAVA: false

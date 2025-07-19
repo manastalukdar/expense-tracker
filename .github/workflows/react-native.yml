@@ -1,0 +1,214 @@
+name: React Native
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: 
+      - 'apps/mobile/**'
+      - 'packages/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=packages/shared
+          npm run build --workspace=packages/database
+          
+      - name: Run mobile app tests
+        run: npm run mobile:test
+        
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          file: ./apps/mobile/coverage/lcov.info
+          flags: mobile
+          name: mobile-coverage
+
+  android-build:
+    name: Android Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            apps/mobile/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=packages/shared
+          npm run build --workspace=packages/database
+          
+      - name: Android Build
+        working-directory: apps/mobile
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          
+      - name: Android Unit Tests
+        working-directory: apps/mobile
+        run: |
+          cd android
+          ./gradlew testDebugUnitTest --no-daemon
+          
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+  ios-build:
+    name: iOS Build & Test
+    runs-on: macos-14
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: true
+          working-directory: apps/mobile
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=packages/shared
+          npm run build --workspace=packages/database
+          
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: apps/mobile/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+            
+      - name: Install iOS dependencies
+        working-directory: apps/mobile/ios
+        run: |
+          bundle install
+          pod install --repo-update
+          
+      - name: iOS Build
+        working-directory: apps/mobile
+        run: |
+          xcodebuild -workspace ios/ExpenseTracker.xcworkspace \
+            -scheme ExpenseTracker \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath ios/build \
+            -quiet
+            
+      - name: iOS Unit Tests
+        working-directory: apps/mobile
+        run: |
+          xcodebuild test \
+            -workspace ios/ExpenseTracker.xcworkspace \
+            -scheme ExpenseTracker \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -derivedDataPath ios/build \
+            -quiet
+
+  metro-bundler:
+    name: Metro Bundle Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build shared packages
+        run: |
+          npm run build --workspace=packages/shared
+          npm run build --workspace=packages/database
+          
+      - name: Generate bundle
+        working-directory: apps/mobile
+        run: |
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file index.js \
+            --bundle-output android-bundle.js \
+            --verbose
+            
+      - name: Analyze bundle size
+        working-directory: apps/mobile
+        run: |
+          ls -lh android-bundle.js
+          echo "Bundle size: $(du -h android-bundle.js | cut -f1)"

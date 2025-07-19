@@ -1,11 +1,88 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
+# Dependabot configuration for Expense Tracker monorepo
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/website/" # Location of package manifests
+  # Root workspace dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "manastalukdar"
+    commit-message:
+      prefix: "deps(root)"
+      include: "scope"
+
+  # Mobile app dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/mobile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "manastalukdar"
+    commit-message:
+      prefix: "deps(mobile)"
+      include: "scope"
+
+  # Shared package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/shared"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "manastalukdar"
+    commit-message:
+      prefix: "deps(shared)"
+      include: "scope"
+
+  # Database package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/database"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "manastalukdar"
+    commit-message:
+      prefix: "deps(database)"
+      include: "scope"
+
+  # GitHub Actions workflow dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "manastalukdar"
+    commit-message:
+      prefix: "deps(actions)"
+      include: "scope"
+
+  # Android Gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/apps/mobile/android"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "manastalukdar"
+    commit-message:
+      prefix: "deps(android)"
+      include: "scope"
