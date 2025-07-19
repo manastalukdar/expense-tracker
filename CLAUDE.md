@@ -118,9 +118,16 @@ After installing dependencies, run: `cd apps/mobile/ios && pod install && cd ../
 
 ### Testing Strategy
 
-- Jest 29.7.0 for unit testing
+- Jest 30.0.4 for unit testing
 - Tests should cover store actions and database operations
 - Run `npm run mobile:test -- --watch` for development
+
+### Build System
+
+- TypeScript compilation with project references for dependency order
+- `packages/shared` must build before `packages/database` (due to imports)
+- Uses `tsc -b` (build mode) to handle project references automatically
+- All packages compile to `dist/` directories with both `.js` and `.d.ts` files
 
 ## Package Dependencies
 
