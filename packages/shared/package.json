@@ -1,0 +1,27 @@
+{
+  "name": "@expense-tracker/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared types, utilities, and constants for expense tracker",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "jest"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "eslint": "^9.15.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.6.0"
+  },
+  "files": [
+    "dist"
+  ]
+}
