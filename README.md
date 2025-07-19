@@ -38,6 +38,7 @@ Expense Tracker is a comprehensive personal finance management application desig
 ## Features
 
 ### Core Functionality
+
 - ✅ Add, edit, and delete expenses
 - ✅ Categorize expenses with custom categories
 - ✅ Multi-currency support
@@ -46,12 +47,14 @@ Expense Tracker is a comprehensive personal finance management application desig
 - ✅ Offline-first data storage
 
 ### Analytics & Reporting
+
 - ✅ Visual charts (Pie charts, Line graphs)
 - ✅ Category-wise spending breakdown
 - ✅ Monthly/period summaries
 - ✅ Spending trends analysis
 
 ### User Experience
+
 - ✅ Intuitive navigation
 - ✅ Pull-to-refresh functionality
 - ✅ Empty state handling
@@ -59,10 +62,12 @@ Expense Tracker is a comprehensive personal finance management application desig
 - ✅ Theme support (Light/Dark)
 
 ### Planned Features
+
 - 🔄 Budget management and tracking
 - 🔄 Receipt scanning and OCR
 - 🔄 Data export (CSV, PDF)
 - 🔄 Cloud sync and backup
+- 🔄 Desktop application (Electron/Tauri)
 - 🔄 Web application companion
 
 ## Architecture
@@ -70,6 +75,7 @@ Expense Tracker is a comprehensive personal finance management application desig
 The application follows a modern monorepo architecture with clear separation of concerns:
 
 ### Design Principles
+
 - **Modular Architecture**: Shared packages for reusable code
 - **Domain-Driven Design**: Business logic separated from UI concerns
 - **Offline-First**: Local SQLite database with future sync capabilities
@@ -77,7 +83,8 @@ The application follows a modern monorepo architecture with clear separation of 
 - **Type Safety**: Full TypeScript coverage for better developer experience
 
 ### Data Flow
-```
+
+```plaintext
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   UI Components │ ──→│  Zustand Store   │ ──→│ Database Layer  │
 │                 │    │                  │    │                 │
@@ -88,20 +95,23 @@ The application follows a modern monorepo architecture with clear separation of 
 
 ## Directory Structure
 
-```
+```plaintext
 expense-tracker/
 ├── apps/                              # Application packages
-│   └── mobile/                        # React Native mobile app
-│       ├── src/
-│       │   ├── components/            # Reusable UI components
-│       │   ├── navigation/            # Navigation configuration
-│       │   ├── screens/               # Screen components
-│       │   ├── store/                 # Zustand state management
-│       │   ├── theme/                 # UI theme configuration
-│       │   └── types/                 # Type definitions
-│       ├── android/                   # Android-specific files
-│       ├── ios/                       # iOS-specific files
-│       └── package.json
+│   ├── mobile/                        # React Native mobile app
+│   │   ├── src/
+│   │   │   ├── components/            # Reusable UI components
+│   │   │   ├── navigation/            # Navigation configuration
+│   │   │   ├── screens/               # Screen components
+│   │   │   ├── store/                 # Zustand state management
+│   │   │   ├── theme/                 # UI theme configuration
+│   │   │   └── types/                 # Type definitions
+│   │   ├── android/                   # Android-specific files
+│   │   ├── ios/                       # iOS-specific files
+│   │   └── package.json
+│   │
+│   └── desktop/                       # Desktop app (planned)
+│       └── .gitkeep                   # Placeholder for future development
 │
 ├── packages/                          # Shared packages
 │   ├── shared/                        # Shared utilities and types
@@ -135,40 +145,45 @@ expense-tracker/
 ## Technology Stack
 
 ### Core Technologies
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [React Native](https://reactnative.dev/) | 0.75.5 | Cross-platform mobile framework |
-| [TypeScript](https://www.typescriptlang.org/) | 5.6.0 | Type-safe JavaScript |
-| [React](https://reactjs.org/) | 18.3.1 | UI library |
+
+| Technology                                    | Version | Purpose                         |
+| --------------------------------------------- | ------- | ------------------------------- |
+| [React Native](https://reactnative.dev/)      | 0.75.5  | Cross-platform mobile framework |
+| [TypeScript](https://www.typescriptlang.org/) | 5.6.0   | Type-safe JavaScript            |
+| [React](https://reactjs.org/)                 | 18.3.1  | UI library                      |
 
 ### State Management & Data
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [Zustand](https://github.com/pmndrs/zustand) | 5.0.1 | Lightweight state management |
-| [SQLite](https://www.sqlite.org/) | - | Local database storage |
-| [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) | 6.0.1 | SQLite React Native bindings |
+
+| Technology                                                                           | Version | Purpose                      |
+| ------------------------------------------------------------------------------------ | ------- | ---------------------------- |
+| [Zustand](https://github.com/pmndrs/zustand)                                         | 5.0.1   | Lightweight state management |
+| [SQLite](https://www.sqlite.org/)                                                    | -       | Local database storage       |
+| [react-native-sqlite-storage](https://github.com/andpor/react-native-sqlite-storage) | 6.0.1   | SQLite React Native bindings |
 
 ### UI & Navigation
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [React Native Elements](https://reactnativeelements.com/) | 3.4.3 | UI component library |
-| [React Navigation](https://reactnavigation.org/) | 7.x | Navigation library |
-| [React Native Vector Icons](https://github.com/oblador/react-native-vector-icons) | 10.2.0 | Icon library |
-| [React Native Chart Kit](https://github.com/indiespirit/react-native-chart-kit) | 6.12.0 | Data visualization |
+
+| Technology                                                                        | Version | Purpose              |
+| --------------------------------------------------------------------------------- | ------- | -------------------- |
+| [React Native Elements](https://reactnativeelements.com/)                         | 3.4.3   | UI component library |
+| [React Navigation](https://reactnavigation.org/)                                  | 7.x     | Navigation library   |
+| [React Native Vector Icons](https://github.com/oblador/react-native-vector-icons) | 10.2.0  | Icon library         |
+| [React Native Chart Kit](https://github.com/indiespirit/react-native-chart-kit)   | 6.12.0  | Data visualization   |
 
 ### Development Tools
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [ESLint](https://eslint.org/) | 9.15.0 | Code linting |
-| [Prettier](https://prettier.io/) | 3.3.0 | Code formatting |
-| [Jest](https://jestjs.io/) | 29.7.0 | Testing framework |
-| [Metro](https://metrobundler.dev/) | - | JavaScript bundler |
+
+| Technology                         | Version | Purpose            |
+| ---------------------------------- | ------- | ------------------ |
+| [ESLint](https://eslint.org/)      | 9.15.0  | Code linting       |
+| [Prettier](https://prettier.io/)   | 3.3.0   | Code formatting    |
+| [Jest](https://jestjs.io/)         | 29.7.0  | Testing framework  |
+| [Metro](https://metrobundler.dev/) | -       | JavaScript bundler |
 
 ### Utilities
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| [date-fns](https://date-fns.org/) | 4.1.0 | Date manipulation |
-| [React Native Async Storage](https://github.com/react-native-async-storage/async-storage) | 2.1.0 | Async storage |
+
+| Technology                                                                                | Version | Purpose           |
+| ----------------------------------------------------------------------------------------- | ------- | ----------------- |
+| [date-fns](https://date-fns.org/)                                                         | 4.1.0   | Date manipulation |
+| [React Native Async Storage](https://github.com/react-native-async-storage/async-storage) | 2.1.0   | Async storage     |
 
 ## Getting Started
 
@@ -183,49 +198,55 @@ expense-tracker/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/manastalukdar/expense-tracker.git
    cd expense-tracker
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **iOS Setup** (macOS only)
+
    ```bash
    cd apps/mobile/ios && pod install && cd ../../../
    ```
 
 4. **Start the Metro bundler**
+
    ```bash
    npm run mobile:start
    ```
 
 5. **Run the application**
-   
+
    For iOS:
+
    ```bash
    npm run mobile:ios
    ```
-   
+
    For Android:
+
    ```bash
    npm run mobile:android
    ```
 
 ### Quick Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run mobile:start` | Start Metro bundler |
-| `npm run mobile:ios` | Run iOS app |
-| `npm run mobile:android` | Run Android app |
-| `npm run mobile:test` | Run tests |
-| `npm run mobile:lint` | Lint code |
-| `npm run lint` | Lint all workspaces |
-| `npm run test` | Test all workspaces |
+| Command                  | Description         |
+| ------------------------ | ------------------- |
+| `npm run mobile:start`   | Start Metro bundler |
+| `npm run mobile:ios`     | Run iOS app         |
+| `npm run mobile:android` | Run Android app     |
+| `npm run mobile:test`    | Run tests           |
+| `npm run mobile:lint`    | Lint code           |
+| `npm run lint`           | Lint all workspaces |
+| `npm run test`           | Test all workspaces |
 
 ## Development
 
@@ -275,21 +296,22 @@ npm run build --workspace=packages/database
 
 ### Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Installation Guide](./documentation/product/installation.md) | Detailed setup instructions |
-| [Usage Guide](./documentation/product/usage.md) | User manual and features |
-| [Development Guide](./documentation/development/development.md) | Development workflow |
-| [Architecture](./documentation/development/design-architecture.md) | Technical architecture |
-| [Testing](./documentation/development/testing.md) | Testing strategies |
+| Document                                                           | Description                 |
+| ------------------------------------------------------------------ | --------------------------- |
+| [Installation Guide](./documentation/product/installation.md)      | Detailed setup instructions |
+| [Usage Guide](./documentation/product/usage.md)                    | User manual and features    |
+| [Development Guide](./documentation/development/development.md)    | Development workflow        |
+| [Architecture](./documentation/development/design-architecture.md) | Technical architecture      |
+| [Testing](./documentation/development/testing.md)                  | Testing strategies          |
 
 ### Roadmap
 
 - **Phase 1**: ✅ Core expense tracking (Complete)
 - **Phase 2**: 🔄 Budget management and goals
-- **Phase 3**: 🔄 Web application
-- **Phase 4**: 🔄 Cloud sync and backup
-- **Phase 5**: 🔄 Advanced analytics and insights
+- **Phase 3**: 🔄 Desktop application (Electron/Tauri)
+- **Phase 4**: 🔄 Web application
+- **Phase 5**: 🔄 Cloud sync and backup
+- **Phase 6**: 🔄 Advanced analytics and insights
 
 ## Contributing
 

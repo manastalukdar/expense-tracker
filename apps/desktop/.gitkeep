@@ -1,0 +1,14 @@
+# Desktop Application (Planned)
+
+This directory will contain the desktop version of the Expense Tracker application.
+
+## Planned Technology Stack
+- Electron or Tauri
+- React or Next.js
+- Shared packages from the monorepo
+
+## Features (Planned)
+- Cross-platform desktop support (Windows, macOS, Linux)
+- Shared business logic with mobile app
+- Enhanced UI for desktop workflows
+- Local data synchronization
