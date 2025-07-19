@@ -26,6 +26,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test --workspace=packages/shared` - Test shared package only
 - `npm run test --workspace=packages/database` - Test database package only
 
+### Dependency Management
+
+- `npm run deps:check` - Check for dependency updates across all workspaces
+- `npm run deps:update` - Update all dependencies and install
+- `npm run deps:check-external` - Check only external dependencies (excludes @expense-tracker/*)
+- `npm run deps:update-external` - Update only external dependencies
+- `npm run deps:interactive` - Interactive mode for selective dependency updates
+
 ## Architecture Overview
 
 This is a **monorepo** using npm workspaces with the following structure:
@@ -129,6 +137,34 @@ When importing between packages, use workspace syntax:
 - Database: `import { DatabaseManager } from '@expense-tracker/database'`
 - Store: `import { useExpenseStore } from '../store/useExpenseStore'`
 
+## Dependency Management Workflow
+
+### Using npm-check-updates (ncu) with Workspaces
+
+This monorepo uses npm-check-updates to manage dependency updates across all workspaces. The commands are orchestrated from the root:
+
+**Recommended workflow:**
+1. `npm run deps:check` - See what dependencies can be updated
+2. `npm run deps:update` - Update all and install (or use `deps:update-external` for external only)
+
+**Internal vs External Dependencies:**
+- **Internal**: `@expense-tracker/shared`, `@expense-tracker/database` (use `*` versions, don't update)
+- **External**: All other npm packages (React Native, TypeScript, etc.)
+
+**Command Details:**
+- `deps:check` - Shows updates for all workspaces + root
+- `deps:update` - Updates all package.json files, cleans workspace node_modules, then runs `npm install`
+- `deps:check-external` - Excludes internal `@expense-tracker/*` packages
+- `deps:update-external` - Updates only external dependencies, cleans workspace node_modules, then runs `npm install`
+- `deps:interactive` - Choose which dependencies to update
+
+**Alternative: Direct ncu commands**
+```bash
+ncu --workspaces --root                    # Check all
+ncu --workspaces --root -u && npm install # Update all
+ncu --workspace apps/mobile                # Check specific workspace
+```
+
 ## Important Notes
 
 - This is an **offline-first** application using SQLite for local storage
@@ -136,3 +172,4 @@ When importing between packages, use workspace syntax:
 - State management is centralized in a single Zustand store
 - The mobile app is the primary platform; desktop is planned for future
 - Use workspace commands from the root for monorepo operations
+- Internal workspace dependencies should remain at `*` versions
