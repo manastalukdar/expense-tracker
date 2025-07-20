@@ -1,8 +1,22 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal, ScrollView } from 'react-native';
-import { Text, ListItem, Icon, Button, SearchBar } from 'react-native-elements';
+import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, ListItem, Icon, Button, SearchBar, Input, Overlay, ButtonGroup } from 'react-native-elements';
 import { useExpenseStore } from '../../store/useExpenseStore';
-import { PaymentMethod } from '@expense-tracker/shared';
+import { PaymentMethod, PaymentMethodFormData } from '@expense-tracker/shared';
+
+const PAYMENT_METHOD_TYPES = [
+  { type: 'cash', name: 'Cash', icon: '💵' },
+  { type: 'credit_card', name: 'Credit Card', icon: '💳' },
+  { type: 'debit_card', name: 'Debit Card', icon: '💳' },
+  { type: 'bank_transfer', name: 'Bank Transfer', icon: '🏦' },
+  { type: 'digital_wallet', name: 'Digital Wallet', icon: '📱' },
+  { type: 'other', name: 'Other', icon: '💰' },
+] as const;
+
+const PAYMENT_METHOD_COLORS = [
+  '#007AFF', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE',
+];
 
 interface PaymentMethodPickerProps {
   selectedPaymentMethodId?: string;
@@ -19,9 +33,59 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
   allowClear = true,
   style
 }) => {
-  const { paymentMethods } = useExpenseStore();
+  const { paymentMethods, createPaymentMethod, isLoading } = useExpenseStore();
   const [isVisible, setIsVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newPaymentMethodData, setNewPaymentMethodData] = useState<PaymentMethodFormData>({
+    type: 'cash',
+    name: '',
+    color: PAYMENT_METHOD_COLORS[0],
+    icon: '💵',
+  });
+  const [selectedTypeIndex, setSelectedTypeIndex] = useState(0);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  const resetNewPaymentMethodData = () => {
+    setNewPaymentMethodData({
+      type: 'cash',
+      name: '',
+      color: PAYMENT_METHOD_COLORS[0],
+      icon: '💵',
+    });
+    setSelectedTypeIndex(0);
+  };
+
+  const handleCreatePaymentMethod = async () => {
+    if (!newPaymentMethodData.name.trim()) {
+      Alert.alert('Error', 'Please enter a payment method name');
+      return;
+    }
+
+    try {
+      const paymentMethodId = await createPaymentMethod(newPaymentMethodData);
+      const newPaymentMethod = paymentMethods.find(pm => pm.id === paymentMethodId);
+      if (newPaymentMethod) {
+        onPaymentMethodSelect(newPaymentMethod);
+      }
+      setShowCreateModal(false);
+      setIsVisible(false);
+      resetNewPaymentMethodData();
+      Alert.alert('Success', 'Payment method created successfully!');
+    } catch {
+      Alert.alert('Error', 'Failed to create payment method. Please try again.');
+    }
+  };
+
+  const handleTypeSelection = (index: number) => {
+    setSelectedTypeIndex(index);
+    const selectedType = PAYMENT_METHOD_TYPES[index];
+    setNewPaymentMethodData(prev => ({
+      ...prev,
+      type: selectedType.type,
+      icon: selectedType.icon,
+    }));
+  };
 
   const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethodId);
 
@@ -182,6 +246,23 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
 
             {filteredPaymentMethods.map(renderPaymentMethodItem)}
 
+            <ListItem
+              onPress={() => setShowCreateModal(true)}
+              containerStyle={styles.createItem}
+            >
+              <Icon
+                name="plus"
+                type="feather"
+                size={20}
+                color="#007AFF"
+              />
+              <ListItem.Content>
+                <ListItem.Title style={styles.createText}>
+                  Create New Payment Method
+                </ListItem.Title>
+              </ListItem.Content>
+            </ListItem>
+
             {filteredPaymentMethods.length === 0 && (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>
@@ -192,6 +273,96 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
           </ScrollView>
         </View>
       </Modal>
+
+      <Overlay
+        isVisible={showCreateModal}
+        onBackdropPress={() => setShowCreateModal(false)}
+        overlayStyle={styles.createModal}
+      >
+        <ScrollView style={styles.createModalContent}>
+          <Text style={styles.createModalTitle}>Create New Payment Method</Text>
+
+          <Input
+            label="Name"
+            value={newPaymentMethodData.name}
+            onChangeText={(text) =>
+              setNewPaymentMethodData(prev => ({ ...prev, name: text }))
+            }
+            placeholder="Enter payment method name"
+            containerStyle={styles.inputContainer}
+          />
+
+          <Text style={styles.sectionLabel}>Type</Text>
+          <ButtonGroup
+            buttons={PAYMENT_METHOD_TYPES.map(type => type.name)}
+            selectedIndex={selectedTypeIndex}
+            onPress={handleTypeSelection}
+            containerStyle={styles.typeButtonGroup}
+            selectedButtonStyle={styles.selectedTypeButton}
+          />
+
+          <TouchableOpacity
+            style={styles.pickerRow}
+            onPress={() => setShowColorPicker(true)}
+          >
+            <Text style={styles.pickerLabel}>Color</Text>
+            <View style={styles.pickerValue}>
+              <View
+                style={[styles.colorPreview, { backgroundColor: newPaymentMethodData.color }]}
+              />
+              <Icon name="chevron-right" size={16} color="#666" />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.createModalButtons}>
+            <Button
+              title="Cancel"
+              type="outline"
+              onPress={() => {
+                setShowCreateModal(false);
+                resetNewPaymentMethodData();
+              }}
+              buttonStyle={styles.cancelCreateButton}
+            />
+            <Button
+              title="Create"
+              onPress={handleCreatePaymentMethod}
+              loading={isLoading}
+              buttonStyle={styles.createButton}
+            />
+          </View>
+        </ScrollView>
+      </Overlay>
+
+      <Overlay
+        isVisible={showColorPicker}
+        onBackdropPress={() => setShowColorPicker(false)}
+        overlayStyle={styles.colorPickerModal}
+      >
+        <View style={styles.colorPickerContent}>
+          <Text style={styles.colorPickerTitle}>Select Color</Text>
+          <View style={styles.colorGrid}>
+            {PAYMENT_METHOD_COLORS.map((color, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.colorButton,
+                  { backgroundColor: color },
+                  newPaymentMethodData.color === color && styles.selectedColorButton,
+                ]}
+                onPress={() => {
+                  setNewPaymentMethodData(prev => ({ ...prev, color }));
+                  setShowColorPicker(false);
+                }}
+              >
+                {newPaymentMethodData.color === color && (
+                  <Icon name="check" size={16} color="white" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Overlay>
     </View>
   );
 };
@@ -304,6 +475,119 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
+  },
+  createItem: {
+    backgroundColor: '#F0F8FF',
+    paddingVertical: 12,
+    borderBottomWidth: 0,
+  },
+  createText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  createModal: {
+    width: '90%',
+    maxHeight: '80%',
+    borderRadius: 12,
+  },
+  createModalContent: {
+    padding: 20,
+  },
+  createModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 8,
+    marginLeft: 10,
+  },
+  typeButtonGroup: {
+    borderRadius: 8,
+    marginBottom: 16,
+    height: 40,
+  },
+  selectedTypeButton: {
+    backgroundColor: '#007AFF',
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  pickerLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  pickerValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  colorPreview: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  createModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  cancelCreateButton: {
+    borderColor: '#666',
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 24,
+  },
+  createButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+  },
+  colorPickerModal: {
+    width: '70%',
+    borderRadius: 12,
+  },
+  colorPickerContent: {
+    padding: 20,
+  },
+  colorPickerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  colorButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  selectedColorButton: {
+    borderWidth: 3,
+    borderColor: '#333',
   },
 });
 

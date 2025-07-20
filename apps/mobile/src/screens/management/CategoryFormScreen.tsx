@@ -34,7 +34,7 @@ const CategoryFormScreen: React.FC = () => {
 
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
-    icon: '🍔',
+    icon: '',
     parentId: undefined,
   });
 
@@ -80,7 +80,7 @@ const CategoryFormScreen: React.FC = () => {
   const getParentCategoryName = () => {
     if (!formData.parentId) return 'None (Top Level)';
     const parent = categories.find(cat => cat.id === formData.parentId);
-    return parent ? `${parent.icon} ${parent.name}` : 'None (Top Level)';
+    return parent ? `${parent.icon || '📁'} ${parent.name}` : 'None (Top Level)';
   };
 
   const getAvailableParentCategories = () => {
@@ -133,7 +133,9 @@ const CategoryFormScreen: React.FC = () => {
             onPress={() => setShowIconPicker(!showIconPicker)}
             containerStyle={styles.pickerItem}
           >
-            <Text style={styles.selectedIcon}>{formData.icon}</Text>
+            <Text style={styles.selectedIcon}>
+              {formData.icon || '📁'}
+            </Text>
             <ListItem.Content>
               <ListItem.Title style={styles.pickerLabel}>
                 Choose Icon
@@ -149,6 +151,19 @@ const CategoryFormScreen: React.FC = () => {
 
           {showIconPicker && (
             <View style={styles.iconGrid}>
+              <Button
+                title="No Icon"
+                onPress={() => {
+                  setFormData(prev => ({ ...prev, icon: '' }));
+                  setShowIconPicker(false);
+                }}
+                buttonStyle={[
+                  styles.iconButton,
+                  styles.noIconButton,
+                  formData.icon === '' && styles.selectedIconButton
+                ]}
+                titleStyle={styles.noIconButtonText}
+              />
               {CATEGORY_ICONS.map((icon, index) => (
                 <Button
                   key={index}
@@ -213,7 +228,7 @@ const CategoryFormScreen: React.FC = () => {
                   }}
                   containerStyle={styles.parentItem}
                 >
-                  <Text style={styles.parentIcon}>{cat.icon}</Text>
+                  <Text style={styles.parentIcon}>{cat.icon || '📁'}</Text>
                   <ListItem.Content>
                     <ListItem.Title style={styles.parentName}>
                       {cat.name}
@@ -327,6 +342,14 @@ const styles = StyleSheet.create({
   },
   iconButtonText: {
     fontSize: 20,
+  },
+  noIconButton: {
+    backgroundColor: '#F0F0F0',
+  },
+  noIconButtonText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   parentList: {
     backgroundColor: '#F8F8F8',

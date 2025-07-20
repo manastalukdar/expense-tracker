@@ -1,7 +1,8 @@
 export interface Expense {
   id: string;
   amount: number;
-  description: string;
+  description?: string;
+  vendor: string;
   category: ExpenseCategory;
   date: Date;
   currency: Currency;
@@ -52,6 +53,14 @@ export interface Tag {
   color?: string;
   description?: string;
   usageCount?: number; // For statistics
+  createdAt: Date;
+}
+
+export interface Vendor {
+  id: string;
+  name: string;
+  usageCount: number;
+  lastUsed: Date;
   createdAt: Date;
 }
 

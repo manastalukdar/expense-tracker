@@ -8,6 +8,7 @@ import {
   ExpenseFilter,
   PaymentMethod,
   Tag,
+  Vendor,
   CategoryTree,
   CategoryFormData,
   PaymentMethodFormData,
@@ -24,6 +25,7 @@ interface ExpenseState {
   currencies: Currency[];
   paymentMethods: PaymentMethod[];
   tags: Tag[];
+  vendors: string[];
   userPreferences: UserPreferences | null;
   
   // UI State
@@ -62,6 +64,11 @@ interface ExpenseState {
   searchTags: (query: string) => Promise<Tag[]>;
   getOrCreateTag: (name: string) => Promise<Tag>;
   
+  // Vendor actions
+  loadVendors: () => Promise<void>;
+  searchVendors: (query: string) => Promise<string[]>;
+  getPopularVendors: () => Promise<string[]>;
+  
   // Currency actions
   loadCurrencies: () => Promise<void>;
   
@@ -86,6 +93,7 @@ export const useExpenseStore = create<ExpenseState>()(
     currencies: DEFAULT_CURRENCIES,
     paymentMethods: [],
     tags: [],
+    vendors: [],
     userPreferences: null,
     isLoading: false,
     error: null,
@@ -598,6 +606,38 @@ export const useExpenseStore = create<ExpenseState>()(
       } catch (error) {
         console.error('Failed to get or create tag:', error);
         throw error;
+      }
+    },
+
+    // Vendor actions
+    loadVendors: async () => {
+      try {
+        const db = DatabaseManager.getInstance();
+        const vendors = await db.getPopularVendors(50); // Get top 50 vendors
+        set({ vendors });
+      } catch (error) {
+        console.error('Failed to load vendors:', error);
+        set({ error: error instanceof Error ? error.message : 'Failed to load vendors' });
+      }
+    },
+
+    searchVendors: async (query) => {
+      try {
+        const db = DatabaseManager.getInstance();
+        return await db.searchVendors(query, 10);
+      } catch (error) {
+        console.error('Failed to search vendors:', error);
+        return [];
+      }
+    },
+
+    getPopularVendors: async () => {
+      try {
+        const db = DatabaseManager.getInstance();
+        return await db.getPopularVendors(10);
+      } catch (error) {
+        console.error('Failed to get popular vendors:', error);
+        return [];
       }
     },
 

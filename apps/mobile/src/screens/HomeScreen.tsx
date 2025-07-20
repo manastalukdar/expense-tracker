@@ -63,6 +63,14 @@ const HomeScreen = () => {
           titleStyle={styles.secondaryButtonText}
           onPress={() => navigation.navigate('Reports')}
         />
+        
+        <Button
+          title="Manage Settings"
+          icon={<Icon name="settings" color="#007AFF" style={{ marginRight: 8 }} />}
+          buttonStyle={[styles.actionButton, styles.secondaryButton]}
+          titleStyle={styles.secondaryButtonText}
+          onPress={() => navigation.navigate('ManagementMenu')}
+        />
       </Card>
 
       {/* Recent Expenses */}

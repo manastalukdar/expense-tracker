@@ -8,6 +8,7 @@ import {
   ExpenseFilter,
   PaymentMethod,
   Tag,
+  Vendor,
   CategoryTree,
   PaymentMethodFormData,
   TagFormData,
@@ -110,16 +111,21 @@ export class DatabaseManager {
     const id = generateId();
     const now = new Date().toISOString();
 
+    // Create or update vendor usage
+    await this.createOrUpdateVendor(expense.vendor);
+
     await this.db.executeSql(`
-      INSERT INTO expenses (id, amount, description, category_id, date, currency_code, location, notes, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO expenses (id, amount, description, vendor, category_id, date, currency_code, payment_method_id, location, notes, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       id,
       expense.amount,
-      expense.description,
+      expense.description || null,
+      expense.vendor,
       expense.category.id,
       expense.date.toISOString(),
       expense.currency.code,
+      expense.paymentMethod?.id || null,
       expense.location || null,
       expense.notes || null,
       now,
@@ -147,6 +153,10 @@ export class DatabaseManager {
     if (updates.description !== undefined) {
       fields.push('description = ?');
       values.push(updates.description);
+    }
+    if (updates.vendor !== undefined) {
+      fields.push('vendor = ?');
+      values.push(updates.vendor);
     }
     if (updates.category !== undefined) {
       fields.push('category_id = ?');
@@ -196,12 +206,14 @@ export class DatabaseManager {
 
     let query = `
       SELECT 
-        e.id, e.amount, e.description, e.date, e.location, e.notes, e.created_at, e.updated_at,
+        e.id, e.amount, e.description, e.vendor, e.date, e.location, e.notes, e.created_at, e.updated_at,
         c.id as category_id, c.name as category_name, c.color as category_color, c.icon as category_icon,
-        cur.code as currency_code, cur.symbol as currency_symbol, cur.name as currency_name
+        cur.code as currency_code, cur.symbol as currency_symbol, cur.name as currency_name,
+        pm.id as payment_method_id, pm.name as payment_method_name, pm.type as payment_method_type
       FROM expenses e
       JOIN categories c ON e.category_id = c.id
       JOIN currencies cur ON e.currency_code = cur.code
+      LEFT JOIN payment_methods pm ON e.payment_method_id = pm.id
     `;
 
     const conditions: string[] = [];
@@ -225,9 +237,9 @@ export class DatabaseManager {
         values.push(filter.maxAmount);
       }
       if (filter.searchText) {
-        conditions.push('(e.description LIKE ? OR e.notes LIKE ?)');
+        conditions.push('(e.description LIKE ? OR e.vendor LIKE ? OR e.notes LIKE ?)');
         const searchPattern = `%${filter.searchText}%`;
-        values.push(searchPattern, searchPattern);
+        values.push(searchPattern, searchPattern, searchPattern);
       }
     }
 
@@ -255,6 +267,7 @@ export class DatabaseManager {
         id: row.id,
         amount: row.amount,
         description: row.description,
+        vendor: row.vendor,
         category: {
           id: row.category_id,
           name: row.category_name,
@@ -267,6 +280,14 @@ export class DatabaseManager {
           symbol: row.currency_symbol,
           name: row.currency_name,
         },
+        paymentMethod: row.payment_method_id ? {
+          id: row.payment_method_id,
+          name: row.payment_method_name,
+          type: row.payment_method_type,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } : undefined,
         location: row.location,
         notes: row.notes,
         tags: await this.getExpenseTags(row.id),
@@ -851,5 +872,95 @@ export class DatabaseManager {
     }
 
     return tags;
+  }
+
+  // Vendor operations
+  public async createOrUpdateVendor(vendorName: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const now = new Date().toISOString();
+    
+    // Check if vendor exists
+    const [result] = await this.db.executeSql(
+      'SELECT id, usage_count FROM vendors WHERE name = ?',
+      [vendorName]
+    );
+
+    if (result.rows.length > 0) {
+      // Update existing vendor
+      const vendorId = result.rows.item(0).id;
+      const currentUsage = result.rows.item(0).usage_count;
+      
+      await this.db.executeSql(`
+        UPDATE vendors 
+        SET usage_count = ?, last_used = ?
+        WHERE id = ?
+      `, [currentUsage + 1, now, vendorId]);
+    } else {
+      // Create new vendor
+      const id = generateId();
+      await this.db.executeSql(`
+        INSERT INTO vendors (id, name, usage_count, last_used, created_at)
+        VALUES (?, ?, ?, ?, ?)
+      `, [id, vendorName, 1, now, now]);
+    }
+  }
+
+  public async searchVendors(query: string, limit: number = 10): Promise<string[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const [results] = await this.db.executeSql(`
+      SELECT name FROM vendors 
+      WHERE name LIKE ? 
+      ORDER BY usage_count DESC, last_used DESC
+      LIMIT ?
+    `, [`%${query}%`, limit]);
+
+    const vendors: string[] = [];
+    for (let i = 0; i < results.rows.length; i++) {
+      vendors.push(results.rows.item(i).name);
+    }
+
+    return vendors;
+  }
+
+  public async getPopularVendors(limit: number = 10): Promise<string[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const [results] = await this.db.executeSql(`
+      SELECT name FROM vendors 
+      ORDER BY usage_count DESC, last_used DESC
+      LIMIT ?
+    `, [limit]);
+
+    const vendors: string[] = [];
+    for (let i = 0; i < results.rows.length; i++) {
+      vendors.push(results.rows.item(i).name);
+    }
+
+    return vendors;
+  }
+
+  public async getAllVendors(): Promise<Vendor[]> {
+    if (!this.db) throw new Error('Database not initialized');
+
+    const [results] = await this.db.executeSql(`
+      SELECT id, name, usage_count, last_used, created_at FROM vendors 
+      ORDER BY usage_count DESC, name ASC
+    `);
+
+    const vendors: Vendor[] = [];
+    for (let i = 0; i < results.rows.length; i++) {
+      const row = results.rows.item(i);
+      vendors.push({
+        id: row.id,
+        name: row.name,
+        usageCount: row.usage_count,
+        lastUsed: new Date(row.last_used),
+        createdAt: new Date(row.created_at),
+      });
+    }
+
+    return vendors;
   }
 }

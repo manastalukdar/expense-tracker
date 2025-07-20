@@ -40,7 +40,8 @@ export const CREATE_TABLES_SQL = `
   CREATE TABLE IF NOT EXISTS expenses (
     id TEXT PRIMARY KEY,
     amount REAL NOT NULL CHECK (amount > 0),
-    description TEXT NOT NULL,
+    description TEXT,
+    vendor TEXT NOT NULL,
     category_id TEXT NOT NULL,
     date TIMESTAMP NOT NULL,
     currency_code TEXT NOT NULL,
@@ -58,6 +59,15 @@ export const CREATE_TABLES_SQL = `
   CREATE TABLE IF NOT EXISTS tags (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  -- Vendors table for autocomplete
+  CREATE TABLE IF NOT EXISTS vendors (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    usage_count INTEGER DEFAULT 1,
+    last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -114,12 +124,16 @@ export const CREATE_INDEXES_SQL = `
   CREATE INDEX IF NOT EXISTS idx_expenses_currency ON expenses(currency_code);
   CREATE INDEX IF NOT EXISTS idx_expenses_payment_method ON expenses(payment_method_id);
   CREATE INDEX IF NOT EXISTS idx_expenses_created_at ON expenses(created_at);
+  CREATE INDEX IF NOT EXISTS idx_expenses_vendor ON expenses(vendor);
   CREATE INDEX IF NOT EXISTS idx_categories_parent ON categories(parent_id);
   CREATE INDEX IF NOT EXISTS idx_expense_tags_expense ON expense_tags(expense_id);
   CREATE INDEX IF NOT EXISTS idx_expense_tags_tag ON expense_tags(tag_id);
   CREATE INDEX IF NOT EXISTS idx_payment_methods_type ON payment_methods(type);
   CREATE INDEX IF NOT EXISTS idx_payment_methods_active ON payment_methods(is_active);
   CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
+  CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name);
+  CREATE INDEX IF NOT EXISTS idx_vendors_usage ON vendors(usage_count DESC);
+  CREATE INDEX IF NOT EXISTS idx_vendors_last_used ON vendors(last_used DESC);
 `;
 
 export const INSERT_DEFAULT_DATA_SQL = `

@@ -61,11 +61,12 @@ export const filterExpenses = (expenses: Expense[], filter: ExpenseFilter): Expe
     // Search text filter
     if (filter.searchText) {
       const searchLower = filter.searchText.toLowerCase();
-      const matchesDescription = expense.description.toLowerCase().includes(searchLower);
+      const matchesDescription = expense.description?.toLowerCase().includes(searchLower) || false;
+      const matchesVendor = expense.vendor.toLowerCase().includes(searchLower);
       const matchesNotes = expense.notes?.toLowerCase().includes(searchLower) || false;
       const matchesTags = expense.tags?.some(tag => tag.name.toLowerCase().includes(searchLower)) || false;
       
-      if (!matchesDescription && !matchesNotes && !matchesTags) {
+      if (!matchesDescription && !matchesVendor && !matchesNotes && !matchesTags) {
         return false;
       }
     }
@@ -99,8 +100,8 @@ export const groupExpensesByCategory = (expenses: Expense[]): Record<string, Exp
 export const validateExpense = (expense: Partial<Expense>): string[] => {
   const errors: string[] = [];
 
-  if (!expense.description || expense.description.trim().length === 0) {
-    errors.push('Description is required');
+  if (!expense.vendor || expense.vendor.trim().length === 0) {
+    errors.push('Vendor is required');
   }
 
   if (!expense.amount || expense.amount <= 0) {

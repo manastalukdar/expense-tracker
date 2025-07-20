@@ -3,25 +3,27 @@ import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Input, Button, Header, Card, Text, ButtonGroup, Icon } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import { useExpenseStore } from '../store';
+import { CategoryPicker, PaymentMethodPicker, TagSelector, VendorPicker } from '../components/pickers';
 import { 
   Expense, 
   ExpenseCategory, 
-  Currency, 
-  generateId, 
+  PaymentMethod,
   validateExpense,
   DEFAULT_CURRENCIES 
 } from '@expense-tracker/shared';
 
 const AddExpenseScreen = () => {
   const navigation = useNavigation();
-  const { createExpense, categories, currencies, userPreferences, isLoading } = useExpenseStore();
+  const { createExpense, currencies, userPreferences, tags, isLoading } = useExpenseStore();
   
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
+  const [vendor, setVendor] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [selectedCurrencyIndex, setSelectedCurrencyIndex] = useState(0);
   const [notes, setNotes] = useState('');
-  const [tags, setTags] = useState('');
 
   const defaultCurrency = userPreferences?.defaultCurrency || DEFAULT_CURRENCIES[0];
   const availableCurrencies = currencies.length > 0 ? currencies : DEFAULT_CURRENCIES;
@@ -35,17 +37,29 @@ const AddExpenseScreen = () => {
   }, [defaultCurrency, availableCurrencies]);
 
   const handleAddExpense = async () => {
-    const selectedCategory = categories[selectedCategoryIndex];
+    if (!selectedCategory) {
+      Alert.alert('Validation Error', 'Please select a category');
+      return;
+    }
+    
+    if (!vendor.trim()) {
+      Alert.alert('Validation Error', 'Please enter a vendor name');
+      return;
+    }
+
     const selectedCurrency = availableCurrencies[selectedCurrencyIndex];
+    const selectedTags = tags.filter(tag => selectedTagIds.includes(tag.id));
     
     const expenseData: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'> = {
       amount: parseFloat(amount),
-      description: description.trim(),
+      description: description.trim() || undefined,
+      vendor: vendor.trim(),
       category: selectedCategory,
       date: new Date(),
       currency: selectedCurrency,
+      paymentMethod: selectedPaymentMethod || undefined,
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
       notes: notes.trim() || undefined,
-      tags: tags.trim() ? tags.split(',').map(tag => tag.trim()).filter(Boolean) : undefined,
     };
 
     const validationErrors = validateExpense(expenseData);
@@ -63,21 +77,16 @@ const AddExpenseScreen = () => {
       // Reset form
       setAmount('');
       setDescription('');
+      setVendor('');
       setNotes('');
-      setTags('');
-      setSelectedCategoryIndex(0);
+      setSelectedCategory(null);
+      setSelectedPaymentMethod(null);
+      setSelectedTagIds([]);
       setSelectedCurrencyIndex(availableCurrencies.findIndex(c => c.code === defaultCurrency.code) || 0);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to add expense. Please try again.');
     }
   };
-
-  const categoryButtons = categories.map(cat => ({ element: () => (
-    <View style={styles.categoryButton}>
-      <Text style={styles.categoryEmoji}>{cat.icon}</Text>
-      <Text style={styles.categoryText}>{cat.name}</Text>
-    </View>
-  )}));
 
   const currencyButtons = availableCurrencies.map(curr => curr.code);
 
@@ -109,11 +118,18 @@ const AddExpenseScreen = () => {
           containerStyle={styles.inputContainer}
         />
         
+        <VendorPicker
+          value={vendor}
+          onVendorSelect={setVendor}
+          placeholder="Enter vendor name"
+          style={styles.inputContainer}
+        />
+        
         <Input
-          label="Description *"
+          label="Description"
           value={description}
           onChangeText={setDescription}
-          placeholder="What did you spend on?"
+          placeholder="What did you spend on? (optional)"
           leftIcon={<Icon name="description" color="#666" />}
           containerStyle={styles.inputContainer}
         />
@@ -128,25 +144,33 @@ const AddExpenseScreen = () => {
           leftIcon={<Icon name="note" color="#666" />}
           containerStyle={styles.inputContainer}
         />
-        
-        <Input
-          label="Tags"
-          value={tags}
-          onChangeText={setTags}
-          placeholder="Comma separated tags (optional)"
-          leftIcon={<Icon name="local-offer" color="#666" />}
-          containerStyle={styles.inputContainer}
+      </Card>
+
+      <Card containerStyle={styles.selectionCard}>
+        <Text style={styles.sectionTitle}>Category *</Text>
+        <CategoryPicker
+          selectedCategoryId={selectedCategory?.id}
+          onCategorySelect={setSelectedCategory}
+          placeholder="Select a category"
+          allowClear={false}
         />
       </Card>
 
-      <Card containerStyle={styles.categoryCard}>
-        <Text style={styles.sectionTitle}>Category</Text>
-        <ButtonGroup
-          buttons={categoryButtons}
-          selectedIndex={selectedCategoryIndex}
-          onPress={setSelectedCategoryIndex}
-          containerStyle={styles.buttonGroup}
-          selectedButtonStyle={styles.selectedButton}
+      <Card containerStyle={styles.selectionCard}>
+        <Text style={styles.sectionTitle}>Payment Method</Text>
+        <PaymentMethodPicker
+          selectedPaymentMethodId={selectedPaymentMethod?.id}
+          onPaymentMethodSelect={setSelectedPaymentMethod}
+          placeholder="Select payment method (optional)"
+        />
+      </Card>
+
+      <Card containerStyle={styles.selectionCard}>
+        <Text style={styles.sectionTitle}>Tags</Text>
+        <TagSelector
+          selectedTagIds={selectedTagIds}
+          onTagsSelect={setSelectedTagIds}
+          placeholder="Select tags (optional)"
         />
       </Card>
 
@@ -166,7 +190,7 @@ const AddExpenseScreen = () => {
           title="Add Expense"
           onPress={handleAddExpense}
           loading={isLoading}
-          disabled={!amount || !description || isLoading}
+          disabled={!amount || !vendor || !selectedCategory || isLoading}
           buttonStyle={styles.addButton}
           icon={<Icon name="add" color="#fff" style={{ marginRight: 8 }} />}
         />
@@ -184,7 +208,7 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 12,
   },
-  categoryCard: {
+  selectionCard: {
     margin: 16,
     borderRadius: 12,
   },
@@ -207,18 +231,6 @@ const styles = StyleSheet.create({
   },
   selectedButton: {
     backgroundColor: '#007AFF',
-  },
-  categoryButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  categoryEmoji: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  categoryText: {
-    fontSize: 12,
-    textAlign: 'center',
   },
   buttonContainer: {
     margin: 16,
