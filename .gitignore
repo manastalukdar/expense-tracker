@@ -72,3 +72,12 @@ dist
 
 .vscode/.ropeproject
 __pycache__
+
+# Android/React Native
+.gradle/
+**/android/.gradle/
+.cxx/
+build/
+
+# TypeScript build cache
+*.tsbuildinfo

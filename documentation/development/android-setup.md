@@ -25,7 +25,8 @@ javac -version
 ```
 
 Expected output should show Java 17:
-```
+
+```plaintext
 openjdk version "17.0.x" 2023-xx-xx
 OpenJDK Runtime Environment (build 17.0.x+x-Ubuntu-xxxx)
 OpenJDK 64-Bit Server VM (build 17.0.x+x-Ubuntu-xxxx, mixed mode, sharing)
@@ -34,6 +35,7 @@ OpenJDK 64-Bit Server VM (build 17.0.x+x-Ubuntu-xxxx, mixed mode, sharing)
 ## 2. Install Android Studio
 
 ### Method 1: Direct Download (Recommended)
+
 1. Visit [Android Studio Download Page](https://developer.android.com/studio)
 2. Download the Linux version (.tar.gz file)
 3. Extract and install:
@@ -53,6 +55,7 @@ android-studio
 ```
 
 ### Method 2: Using Snap
+
 ```bash
 # Install via snap
 sudo snap install android-studio --classic
@@ -71,18 +74,23 @@ android-studio
 ## 4. Configure Android SDK
 
 ### Through Android Studio UI:
+
 1. Open Android Studio
 2. Go to **File → Settings** (or **Android Studio → Preferences** on some systems)
 3. Navigate to **Appearance & Behavior → System Settings → Android SDK**
 
 ### SDK Platforms Tab:
+
 Install the following API levels:
+
 - ✅ **Android 14 (API Level 34)** - Current target
 - ✅ **Android 13 (API Level 33)** - Fallback support
 - ✅ **Android 12 (API Level 31)** - Wider compatibility
 
 ### SDK Tools Tab:
+
 Ensure these tools are installed:
+
 - ✅ **Android SDK Build-Tools** (latest version)
 - ✅ **Android Emulator**
 - ✅ **Android SDK Platform-Tools**
@@ -110,12 +118,14 @@ export PATH=$PATH:$JAVA_HOME/bin
 ```
 
 **Apply the changes:**
+
 ```bash
 # Reload your shell configuration
 source ~/.bashrc  # or ~/.zshrc or ~/.profile
 ```
 
 **Verify environment variables:**
+
 ```bash
 echo $ANDROID_HOME
 echo $JAVA_HOME
@@ -126,6 +136,9 @@ which emulator
 ## 6. Create Android Virtual Device (AVD)
 
 ### Through Android Studio:
+
+<https://developer.android.com/studio/run/managing-avds>
+
 1. Open Android Studio
 2. Go to **Tools → AVD Manager**
 3. Click **Create Virtual Device**
@@ -142,6 +155,7 @@ which emulator
 7. Click **Finish**
 
 ### Test the Emulator:
+
 ```bash
 # List available AVDs
 emulator -list-avds
@@ -155,16 +169,19 @@ emulator -avd ExpenseTracker_AVD
 If you prefer using a real device:
 
 ### Enable Developer Options:
+
 1. Go to **Settings → About Phone**
 2. Tap **Build Number** 7 times
 3. Developer Options should now appear in Settings
 
 ### Enable USB Debugging:
+
 1. Go to **Settings → Developer Options**
 2. Enable **USB Debugging**
 3. Enable **Install via USB** (if available)
 
 ### Connect Device:
+
 ```bash
 # Connect your device via USB cable
 # Accept any permission dialogs on the device
@@ -174,7 +191,8 @@ adb devices
 ```
 
 You should see your device listed:
-```
+
+```plaintext
 List of devices attached
 XXXXXXXXXXXXXXXX    device
 ```
@@ -221,6 +239,7 @@ npm run mobile:android
 ### Common Issues:
 
 #### ADB not found
+
 ```bash
 # Add platform-tools to PATH
 export PATH=$PATH:$ANDROID_HOME/platform-tools
@@ -228,6 +247,7 @@ source ~/.bashrc
 ```
 
 #### Emulator won't start
+
 ```bash
 # Check if virtualization is enabled
 egrep -c '(vmx|svm)' /proc/cpuinfo
@@ -237,6 +257,7 @@ egrep -c '(vmx|svm)' /proc/cpuinfo
 ```
 
 #### Gradle build fails
+
 ```bash
 # Clear gradle cache
 cd apps/mobile/android
@@ -247,6 +268,7 @@ npm run mobile:android -- --reset-cache
 ```
 
 #### Device not detected
+
 ```bash
 # Restart ADB server
 adb kill-server
@@ -257,6 +279,7 @@ lsusb  # Should show your device
 ```
 
 #### Build errors with React Native
+
 ```bash
 # Clean React Native cache
 npx react-native start --reset-cache

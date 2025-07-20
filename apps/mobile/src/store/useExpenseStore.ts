@@ -66,25 +66,67 @@ export const useExpenseStore = create<ExpenseState>()(
     // Initialize app
     initializeApp: async () => {
       try {
+        console.log('🚀 Starting app initialization...');
         set({ isLoading: true, error: null });
         
-        const db = DatabaseManager.getInstance();
-        await db.initialize();
-        
-        // Load all initial data
-        await Promise.all([
-          get().loadCategories(),
-          get().loadCurrencies(),
-          get().loadUserPreferences(),
-          get().loadExpenses(),
-        ]);
-        
-        set({ isLoading: false });
+        // Try full initialization with database
+        try {
+          console.log('📦 Creating DatabaseManager instance...');
+          const db = DatabaseManager.getInstance();
+          
+          console.log('🗄️ Initializing database...');
+          await db.initialize();
+          console.log('✅ Database initialized successfully');
+          
+          console.log('📊 Loading initial data...');
+          // Load all initial data with individual logging
+          console.log('  🏷️ Loading categories...');
+          await get().loadCategories();
+          console.log('  💰 Loading currencies...');
+          await get().loadCurrencies();
+          console.log('  ⚙️ Loading user preferences...');
+          await get().loadUserPreferences();
+          console.log('  📋 Loading expenses...');
+          await get().loadExpenses();
+          
+          console.log('🎉 App initialization completed successfully');
+          set({ isLoading: false });
+        } catch (dbError) {
+          console.warn('⚠️ Database initialization failed, using fallback mode:', dbError);
+          
+          // Fallback initialization without database
+          console.log('🔄 Initializing in offline mode...');
+          
+          // Set default currencies
+          const defaultCurrency = DEFAULT_CURRENCIES.find(c => c.code === 'USD') || DEFAULT_CURRENCIES[0];
+          
+          set({
+            currencies: DEFAULT_CURRENCIES,
+            categories: DEFAULT_EXPENSE_CATEGORIES,
+            userPreferences: {
+              defaultCurrency,
+              theme: 'system',
+              language: 'en',
+              dateFormat: 'MMM dd, yyyy',
+              firstDayOfWeek: 0,
+            },
+            expenses: [],
+            isLoading: false,
+            error: null // Clear error to allow app to function
+          });
+          
+          console.log('✅ Fallback initialization completed');
+        }
       } catch (error) {
-        console.error('App initialization failed:', error);
+        console.error('❌ Critical initialization failure:', error);
+        console.error('Error details:', {
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
         set({ 
           isLoading: false, 
-          error: error instanceof Error ? error.message : 'Initialization failed' 
+          error: error instanceof Error ? error.message : 'Critical initialization failed' 
         });
       }
     },

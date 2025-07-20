@@ -28,36 +28,66 @@ export class DatabaseManager {
 
   public async initialize(): Promise<void> {
     try {
+      console.log('🗄️ Opening SQLite database...');
       this.db = await SQLite.openDatabase({
         name: 'ExpenseTracker.db',
         location: 'default',
-        createFromLocation: '~ExpenseTracker.db',
+        // Remove createFromLocation as it might cause issues
       });
+      console.log('✅ Database opened successfully');
 
+      console.log('🏗️ Creating tables...');
       await this.createTables();
-      await this.createIndexes();
-      await this.insertDefaultData();
+      console.log('✅ Tables created');
       
-      console.log('Database initialized successfully');
+      console.log('📇 Creating indexes...');
+      await this.createIndexes();
+      console.log('✅ Indexes created');
+      
+      console.log('📋 Inserting default data...');
+      await this.insertDefaultData();
+      console.log('✅ Default data inserted');
+      
+      console.log('🎉 Database initialized successfully');
     } catch (error) {
-      console.error('Database initialization failed:', error);
+      console.error('❌ Database initialization failed:', error);
+      console.error('Database error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
       throw error;
     }
   }
 
   private async createTables(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    await this.db.executeSql(CREATE_TABLES_SQL);
+    try {
+      await this.db.executeSql(CREATE_TABLES_SQL);
+    } catch (error) {
+      console.error('❌ Failed to create tables:', error);
+      throw new Error(`Table creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private async createIndexes(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    await this.db.executeSql(CREATE_INDEXES_SQL);
+    try {
+      await this.db.executeSql(CREATE_INDEXES_SQL);
+    } catch (error) {
+      console.error('❌ Failed to create indexes:', error);
+      throw new Error(`Index creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private async insertDefaultData(): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
-    await this.db.executeSql(INSERT_DEFAULT_DATA_SQL);
+    try {
+      await this.db.executeSql(INSERT_DEFAULT_DATA_SQL);
+    } catch (error) {
+      console.error('❌ Failed to insert default data:', error);
+      throw new Error(`Default data insertion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   public async close(): Promise<void> {
