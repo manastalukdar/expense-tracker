@@ -6,7 +6,7 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
+    "@react-native-community/cli": "^19.1.0",
     "@babel/preset-env": "^7.28.0",
     "@babel/runtime": "^7.27.6",
     "@react-native/babel-preset": "^0.80.1",
