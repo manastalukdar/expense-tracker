@@ -1,4 +1,4 @@
-import { Currency, ExpenseCategory } from './types';
+import { Currency, ExpenseCategory, PaymentMethodTemplate } from './types';
 
 export const DEFAULT_CURRENCIES: Currency[] = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -74,6 +74,60 @@ export const EXPENSE_VALIDATION_RULES = {
     MAX_COUNT: APP_CONSTANTS.MAX_TAGS,
     MAX_LENGTH: 50,
   },
+};
+
+export const DEFAULT_PAYMENT_METHOD_TEMPLATES: PaymentMethodTemplate[] = [
+  { type: 'cash', name: 'Cash', icon: '💵', color: '#00B894' },
+  { type: 'credit_card', name: 'Credit Card', icon: '💳', color: '#0984e3' },
+  { type: 'debit_card', name: 'Debit Card', icon: '💳', color: '#6c5ce7' },
+  { type: 'bank_transfer', name: 'Bank Transfer', icon: '🏦', color: '#fd79a8' },
+  { type: 'digital_wallet', name: 'Digital Wallet', icon: '📱', color: '#e17055' },
+  { type: 'other', name: 'Other', icon: '💰', color: '#636e72' },
+];
+
+export const CARD_NETWORK_ICONS = {
+  visa: '🔵',
+  mastercard: '🔴', 
+  amex: '🟢',
+  discover: '🟠',
+  other: '💳',
+};
+
+export const POPULAR_CARD_NETWORKS = [
+  { value: 'visa', label: 'Visa', icon: '🔵' },
+  { value: 'mastercard', label: 'Mastercard', icon: '🔴' },
+  { value: 'amex', label: 'American Express', icon: '🟢' },
+  { value: 'discover', label: 'Discover', icon: '🟠' },
+  { value: 'other', label: 'Other', icon: '💳' },
+];
+
+export const DEFAULT_TAG_COLORS = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+  '#DDA0DD', '#FAB1A0', '#74B9FF', '#A29BFE', '#6C5CE7',
+];
+
+export const CATEGORY_MANAGEMENT = {
+  MAX_DEPTH: 3, // Maximum nesting level
+  DEFAULT_COLORS: CHART_COLORS,
+  COMMON_ICONS: [
+    '🍽️', '🛒', '🚗', '💡', '🎬', '🏥', '🛍️', '📚', '✈️', '🏠',
+    '🛡️', '🎁', '💪', '💅', '💼', '📄', '🎯', '🎨', '🎵', '🔧',
+  ],
+};
+
+export const PAYMENT_METHOD_MANAGEMENT = {
+  MAX_ALIAS_LENGTH: 50,
+  MAX_NAME_LENGTH: 100,
+  DEFAULT_COLORS: [
+    '#007AFF', '#34C759', '#FF9500', '#FF3B30', '#5856D6',
+    '#AF52DE', '#FF2D92', '#FF6961', '#32D74B', '#007AFF',
+  ],
+};
+
+export const TAG_MANAGEMENT = {
+  MAX_NAME_LENGTH: 30,
+  MAX_SUGGESTIONS: 10,
+  MIN_RELEVANCE_SCORE: 0.3,
 };
 
 export const THEME_COLORS = {

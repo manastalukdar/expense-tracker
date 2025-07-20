@@ -63,7 +63,7 @@ export const filterExpenses = (expenses: Expense[], filter: ExpenseFilter): Expe
       const searchLower = filter.searchText.toLowerCase();
       const matchesDescription = expense.description.toLowerCase().includes(searchLower);
       const matchesNotes = expense.notes?.toLowerCase().includes(searchLower) || false;
-      const matchesTags = expense.tags?.some(tag => tag.toLowerCase().includes(searchLower)) || false;
+      const matchesTags = expense.tags?.some(tag => tag.name.toLowerCase().includes(searchLower)) || false;
       
       if (!matchesDescription && !matchesNotes && !matchesTags) {
         return false;
@@ -72,7 +72,7 @@ export const filterExpenses = (expenses: Expense[], filter: ExpenseFilter): Expe
 
     // Tags filter
     if (filter.tags && filter.tags.length > 0) {
-      if (!expense.tags || !filter.tags.some(tag => expense.tags!.includes(tag))) {
+      if (!expense.tags || !filter.tags.some(tagId => expense.tags!.some(tag => tag.id === tagId))) {
         return false;
       }
     }

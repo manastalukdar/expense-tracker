@@ -6,6 +6,12 @@ import {
   Currency, 
   UserPreferences, 
   ExpenseFilter,
+  PaymentMethod,
+  Tag,
+  CategoryTree,
+  CategoryFormData,
+  PaymentMethodFormData,
+  TagFormData,
   DEFAULT_CURRENCIES,
   DEFAULT_EXPENSE_CATEGORIES
 } from '@expense-tracker/shared';
@@ -16,6 +22,8 @@ interface ExpenseState {
   expenses: Expense[];
   categories: ExpenseCategory[];
   currencies: Currency[];
+  paymentMethods: PaymentMethod[];
+  tags: Tag[];
   userPreferences: UserPreferences | null;
   
   // UI State
@@ -34,7 +42,25 @@ interface ExpenseState {
   
   // Category actions
   loadCategories: () => Promise<void>;
-  createCategory: (category: Omit<ExpenseCategory, 'id'>) => Promise<void>;
+  getCategoryTree: () => Promise<CategoryTree[]>;
+  createCategory: (data: CategoryFormData) => Promise<string>;
+  updateCategory: (id: string, data: Partial<CategoryFormData>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  moveCategoryToParent: (categoryId: string, newParentId?: string) => Promise<void>;
+  
+  // Payment Method actions
+  loadPaymentMethods: () => Promise<void>;
+  createPaymentMethod: (data: PaymentMethodFormData) => Promise<string>;
+  updatePaymentMethod: (id: string, data: Partial<PaymentMethodFormData>) => Promise<void>;
+  deletePaymentMethod: (id: string) => Promise<void>;
+  
+  // Tag actions
+  loadTags: () => Promise<void>;
+  createTag: (data: TagFormData) => Promise<string>;
+  updateTag: (id: string, data: Partial<TagFormData>) => Promise<void>;
+  deleteTag: (id: string) => Promise<void>;
+  searchTags: (query: string) => Promise<Tag[]>;
+  getOrCreateTag: (name: string) => Promise<Tag>;
   
   // Currency actions
   loadCurrencies: () => Promise<void>;
@@ -58,6 +84,8 @@ export const useExpenseStore = create<ExpenseState>()(
     expenses: [],
     categories: DEFAULT_EXPENSE_CATEGORIES,
     currencies: DEFAULT_CURRENCIES,
+    paymentMethods: [],
+    tags: [],
     userPreferences: null,
     isLoading: false,
     error: null,
@@ -84,6 +112,10 @@ export const useExpenseStore = create<ExpenseState>()(
           await get().loadCategories();
           console.log('  💰 Loading currencies...');
           await get().loadCurrencies();
+          console.log('  💳 Loading payment methods...');
+          await get().loadPaymentMethods();
+          console.log('  🏷️ Loading tags...');
+          await get().loadTags();
           console.log('  ⚙️ Loading user preferences...');
           await get().loadUserPreferences();
           console.log('  📋 Loading expenses...');
@@ -239,30 +271,6 @@ export const useExpenseStore = create<ExpenseState>()(
       }
     },
 
-    createCategory: async (categoryData) => {
-      try {
-        set({ isLoading: true, error: null });
-        
-        const db = DatabaseManager.getInstance();
-        const id = await db.createCategory(categoryData);
-        
-        const newCategory: ExpenseCategory = {
-          ...categoryData,
-          id,
-        };
-        
-        set(state => ({ 
-          categories: [...state.categories, newCategory],
-          isLoading: false 
-        }));
-      } catch (error) {
-        console.error('Failed to create category:', error);
-        set({ 
-          isLoading: false, 
-          error: error instanceof Error ? error.message : 'Failed to create category' 
-        });
-      }
-    },
 
     // Currency actions
     loadCurrencies: async () => {
@@ -317,6 +325,279 @@ export const useExpenseStore = create<ExpenseState>()(
           isLoading: false, 
           error: error instanceof Error ? error.message : 'Failed to update preferences' 
         });
+      }
+    },
+
+    // Enhanced Category actions
+    getCategoryTree: async () => {
+      try {
+        const db = DatabaseManager.getInstance();
+        return await db.getCategoryTree();
+      } catch (error) {
+        console.error('Failed to get category tree:', error);
+        return [];
+      }
+    },
+
+    createCategory: async (data) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        const id = await db.createCategory(data);
+        
+        // Reload categories to get updated list
+        await get().loadCategories();
+        
+        set({ isLoading: false });
+        return id;
+      } catch (error) {
+        console.error('Failed to create category:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to create category' 
+        });
+        throw error;
+      }
+    },
+
+    updateCategory: async (id, data) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.updateCategory(id, data);
+        
+        // Reload categories to get updated list
+        await get().loadCategories();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to update category:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to update category' 
+        });
+        throw error;
+      }
+    },
+
+    deleteCategory: async (id) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.deleteCategory(id);
+        
+        // Reload categories to get updated list
+        await get().loadCategories();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to delete category' 
+        });
+        throw error;
+      }
+    },
+
+    moveCategoryToParent: async (categoryId, newParentId) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.moveCategoryToParent(categoryId, newParentId);
+        
+        // Reload categories to get updated list
+        await get().loadCategories();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to move category:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to move category' 
+        });
+        throw error;
+      }
+    },
+
+    // Payment Method actions
+    loadPaymentMethods: async () => {
+      try {
+        const db = DatabaseManager.getInstance();
+        const paymentMethods = await db.getPaymentMethods();
+        set({ paymentMethods });
+      } catch (error) {
+        console.error('Failed to load payment methods:', error);
+        // Keep empty array on error
+      }
+    },
+
+    createPaymentMethod: async (data) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        const id = await db.createPaymentMethod(data);
+        
+        // Reload payment methods to get updated list
+        await get().loadPaymentMethods();
+        
+        set({ isLoading: false });
+        return id;
+      } catch (error) {
+        console.error('Failed to create payment method:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to create payment method' 
+        });
+        throw error;
+      }
+    },
+
+    updatePaymentMethod: async (id, data) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.updatePaymentMethod(id, data);
+        
+        // Reload payment methods to get updated list
+        await get().loadPaymentMethods();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to update payment method:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to update payment method' 
+        });
+        throw error;
+      }
+    },
+
+    deletePaymentMethod: async (id) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.deletePaymentMethod(id);
+        
+        // Reload payment methods to get updated list
+        await get().loadPaymentMethods();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to delete payment method:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to delete payment method' 
+        });
+        throw error;
+      }
+    },
+
+    // Tag actions
+    loadTags: async () => {
+      try {
+        const db = DatabaseManager.getInstance();
+        const tags = await db.getTags();
+        set({ tags });
+      } catch (error) {
+        console.error('Failed to load tags:', error);
+        // Keep empty array on error
+      }
+    },
+
+    createTag: async (data) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        const id = await db.createTag(data);
+        
+        // Reload tags to get updated list
+        await get().loadTags();
+        
+        set({ isLoading: false });
+        return id;
+      } catch (error) {
+        console.error('Failed to create tag:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to create tag' 
+        });
+        throw error;
+      }
+    },
+
+    updateTag: async (id, data) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.updateTag(id, data);
+        
+        // Reload tags to get updated list
+        await get().loadTags();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to update tag:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to update tag' 
+        });
+        throw error;
+      }
+    },
+
+    deleteTag: async (id) => {
+      try {
+        set({ isLoading: true, error: null });
+        
+        const db = DatabaseManager.getInstance();
+        await db.deleteTag(id);
+        
+        // Reload tags to get updated list
+        await get().loadTags();
+        
+        set({ isLoading: false });
+      } catch (error) {
+        console.error('Failed to delete tag:', error);
+        set({ 
+          isLoading: false, 
+          error: error instanceof Error ? error.message : 'Failed to delete tag' 
+        });
+        throw error;
+      }
+    },
+
+    searchTags: async (query) => {
+      try {
+        const db = DatabaseManager.getInstance();
+        return await db.searchTags(query);
+      } catch (error) {
+        console.error('Failed to search tags:', error);
+        return [];
+      }
+    },
+
+    getOrCreateTag: async (name) => {
+      try {
+        const db = DatabaseManager.getInstance();
+        const tag = await db.getOrCreateTag(name);
+        
+        // Reload tags to get updated list if new tag was created
+        await get().loadTags();
+        
+        return tag;
+      } catch (error) {
+        console.error('Failed to get or create tag:', error);
+        throw error;
       }
     },
 

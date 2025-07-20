@@ -18,6 +18,24 @@ export const CREATE_TABLES_SQL = `
     name TEXT NOT NULL
   );
 
+  -- Payment methods table
+  CREATE TABLE IF NOT EXISTS payment_methods (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL CHECK (type IN ('cash', 'credit_card', 'debit_card', 'bank_transfer', 'digital_wallet', 'other')),
+    name TEXT NOT NULL,
+    alias TEXT,
+    last_four_digits TEXT,
+    card_network TEXT CHECK (card_network IN ('visa', 'mastercard', 'amex', 'discover', 'other')),
+    bank_name TEXT,
+    provider TEXT,
+    is_default BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    color TEXT DEFAULT '#007AFF',
+    icon TEXT DEFAULT '💳',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- Expenses table
   CREATE TABLE IF NOT EXISTS expenses (
     id TEXT PRIMARY KEY,
@@ -26,12 +44,14 @@ export const CREATE_TABLES_SQL = `
     category_id TEXT NOT NULL,
     date TIMESTAMP NOT NULL,
     currency_code TEXT NOT NULL,
+    payment_method_id TEXT,
     location TEXT,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id),
-    FOREIGN KEY (currency_code) REFERENCES currencies(code)
+    FOREIGN KEY (currency_code) REFERENCES currencies(code),
+    FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id)
   );
 
   -- Tags table
@@ -92,10 +112,14 @@ export const CREATE_INDEXES_SQL = `
   CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
   CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category_id);
   CREATE INDEX IF NOT EXISTS idx_expenses_currency ON expenses(currency_code);
+  CREATE INDEX IF NOT EXISTS idx_expenses_payment_method ON expenses(payment_method_id);
   CREATE INDEX IF NOT EXISTS idx_expenses_created_at ON expenses(created_at);
   CREATE INDEX IF NOT EXISTS idx_categories_parent ON categories(parent_id);
   CREATE INDEX IF NOT EXISTS idx_expense_tags_expense ON expense_tags(expense_id);
   CREATE INDEX IF NOT EXISTS idx_expense_tags_tag ON expense_tags(tag_id);
+  CREATE INDEX IF NOT EXISTS idx_payment_methods_type ON payment_methods(type);
+  CREATE INDEX IF NOT EXISTS idx_payment_methods_active ON payment_methods(is_active);
+  CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
 `;
 
 export const INSERT_DEFAULT_DATA_SQL = `
@@ -129,6 +153,10 @@ export const INSERT_DEFAULT_DATA_SQL = `
     ('personal-care', 'Personal Care', '#E17055', '💅'),
     ('business', 'Business', '#2D3436', '💼'),
     ('other', 'Other', '#636E72', '📄');
+
+  -- Insert default payment methods
+  INSERT OR IGNORE INTO payment_methods (id, type, name, icon, color, is_default) VALUES
+    ('cash', 'cash', 'Cash', '💵', '#00B894', TRUE);
 
   -- Insert default user preferences
   INSERT OR IGNORE INTO user_preferences (id) VALUES (1);
