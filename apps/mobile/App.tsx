@@ -9,18 +9,25 @@ import ErrorScreen from './src/components/ErrorScreen';
 import { lightTheme } from './src/theme';
 
 const App = () => {
-  const { initializeApp, isLoading, error } = useExpenseStore();
+  const { initializeApp, resetInitialization, isLoading, error, isAppInitialized } = useExpenseStore();
 
   useEffect(() => {
-    initializeApp();
-  }, [initializeApp]);
+    if (!isAppInitialized && !isLoading && !error) {
+      initializeApp();
+    }
+  }, []); // Empty dependency array - only run once on mount
 
-  if (isLoading) {
+  if (isLoading || !isAppInitialized) {
     return <LoadingScreen />;
   }
 
   if (error) {
-    return <ErrorScreen error={error} onRetry={initializeApp} />;
+    return <ErrorScreen error={error} onRetry={() => {
+      // Reset state and retry initialization
+      console.log('🔄 User requested retry, resetting state...');
+      resetInitialization();
+      initializeApp();
+    }} />;
   }
 
   return (

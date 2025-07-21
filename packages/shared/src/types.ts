@@ -100,6 +100,7 @@ export interface ExpenseFilter {
   maxAmount?: number;
   searchText?: string;
   tags?: string[];
+  paymentMethods?: string[];
 }
 
 export interface ExpenseStats {

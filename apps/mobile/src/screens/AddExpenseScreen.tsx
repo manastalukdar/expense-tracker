@@ -46,6 +46,11 @@ const AddExpenseScreen = () => {
       Alert.alert('Validation Error', 'Please enter a vendor name');
       return;
     }
+    
+    if (!selectedPaymentMethod) {
+      Alert.alert('Validation Error', 'Please select a payment method');
+      return;
+    }
 
     const selectedCurrency = availableCurrencies[selectedCurrencyIndex];
     const selectedTags = tags.filter(tag => selectedTagIds.includes(tag.id));
@@ -57,7 +62,7 @@ const AddExpenseScreen = () => {
       category: selectedCategory,
       date: new Date(),
       currency: selectedCurrency,
-      paymentMethod: selectedPaymentMethod || undefined,
+      paymentMethod: selectedPaymentMethod,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       notes: notes.trim() || undefined,
     };
@@ -157,11 +162,11 @@ const AddExpenseScreen = () => {
       </Card>
 
       <Card containerStyle={styles.selectionCard}>
-        <Text style={styles.sectionTitle}>Payment Method</Text>
+        <Text style={styles.sectionTitle}>Payment Method *</Text>
         <PaymentMethodPicker
           selectedPaymentMethodId={selectedPaymentMethod?.id}
           onPaymentMethodSelect={setSelectedPaymentMethod}
-          placeholder="Select payment method (optional)"
+          placeholder="Select payment method"
         />
       </Card>
 
@@ -190,7 +195,7 @@ const AddExpenseScreen = () => {
           title="Add Expense"
           onPress={handleAddExpense}
           loading={isLoading}
-          disabled={!amount || !vendor || !selectedCategory || isLoading}
+          disabled={!amount || !vendor || !selectedCategory || !selectedPaymentMethod || isLoading}
           buttonStyle={styles.addButton}
           icon={<Icon name="add" color="#fff" style={{ marginRight: 8 }} />}
         />

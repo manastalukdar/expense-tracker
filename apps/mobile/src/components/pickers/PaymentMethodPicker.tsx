@@ -20,17 +20,23 @@ const PAYMENT_METHOD_COLORS = [
 
 interface PaymentMethodPickerProps {
   selectedPaymentMethodId?: string;
-  onPaymentMethodSelect: (paymentMethod: PaymentMethod | null) => void;
+  selectedPaymentMethodIds?: string[];
+  onPaymentMethodSelect?: (paymentMethod: PaymentMethod | null) => void;
+  onPaymentMethodsSelect?: (paymentMethods: PaymentMethod[]) => void;
   placeholder?: string;
   allowClear?: boolean;
+  allowMultiple?: boolean;
   style?: any;
 }
 
 const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
   selectedPaymentMethodId,
+  selectedPaymentMethodIds = [],
   onPaymentMethodSelect,
+  onPaymentMethodsSelect,
   placeholder = "Select Payment Method",
   allowClear = true,
+  allowMultiple = false,
   style
 }) => {
   const { paymentMethods, createPaymentMethod, isLoading } = useExpenseStore();
@@ -88,6 +94,7 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
   };
 
   const selectedPaymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethodId);
+  const selectedPaymentMethods = paymentMethods.filter(pm => selectedPaymentMethodIds.includes(pm.id));
 
   const filteredPaymentMethods = paymentMethods.filter(paymentMethod => 
     !searchQuery || 
@@ -122,14 +129,31 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
   };
 
   const handlePaymentMethodSelect = (paymentMethod: PaymentMethod | null) => {
-    onPaymentMethodSelect(paymentMethod);
-    setIsVisible(false);
-    setSearchQuery('');
+    if (allowMultiple && onPaymentMethodsSelect) {
+      if (!paymentMethod) return;
+      
+      const currentSelected = paymentMethods.filter(pm => selectedPaymentMethodIds.includes(pm.id));
+      const isSelected = selectedPaymentMethodIds.includes(paymentMethod.id);
+      
+      let newSelected: PaymentMethod[];
+      if (isSelected) {
+        // Remove from selection
+        newSelected = currentSelected.filter(pm => pm.id !== paymentMethod.id);
+      } else {
+        // Add to selection
+        newSelected = [...currentSelected, paymentMethod];
+      }
+      
+      onPaymentMethodsSelect(newSelected);
+    } else if (onPaymentMethodSelect) {
+      onPaymentMethodSelect(paymentMethod);
+      setIsVisible(false);
+      setSearchQuery('');
+    }
   };
 
   const renderPaymentMethodItem = (paymentMethod: PaymentMethod) => (
     <ListItem
-      key={paymentMethod.id}
       onPress={() => handlePaymentMethodSelect(paymentMethod)}
       containerStyle={styles.paymentMethodItem}
     >
@@ -145,7 +169,7 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
           {paymentMethod.lastFourDigits && ` •••• ${paymentMethod.lastFourDigits}`}
         </ListItem.Subtitle>
       </ListItem.Content>
-      {selectedPaymentMethodId === paymentMethod.id && (
+      {(allowMultiple ? selectedPaymentMethodIds.includes(paymentMethod.id) : selectedPaymentMethodId === paymentMethod.id) && (
         <Icon name="check" type="feather" size={20} color="#007AFF" />
       )}
     </ListItem>
@@ -157,27 +181,46 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
         onPress={() => setIsVisible(true)}
         containerStyle={styles.pickerButton}
       >
-        {selectedPaymentMethod ? (
-          <>
-            <Text style={styles.selectedIcon}>
-              {getPaymentMethodIcon(selectedPaymentMethod.type)}
-            </Text>
+        {allowMultiple ? (
+          selectedPaymentMethods.length > 0 ? (
             <ListItem.Content>
               <ListItem.Title style={styles.selectedText}>
-                {selectedPaymentMethod.name}
+                {selectedPaymentMethods.length === 1 
+                  ? selectedPaymentMethods[0].name
+                  : `${selectedPaymentMethods.length} payment methods selected`
+                }
               </ListItem.Title>
-              <ListItem.Subtitle style={styles.selectedSubtext}>
-                {getPaymentMethodTypeName(selectedPaymentMethod.type)}
-                {selectedPaymentMethod.lastFourDigits && ` •••• ${selectedPaymentMethod.lastFourDigits}`}
-              </ListItem.Subtitle>
             </ListItem.Content>
-          </>
+          ) : (
+            <ListItem.Content>
+              <ListItem.Title style={styles.placeholderText}>
+                {placeholder}
+              </ListItem.Title>
+            </ListItem.Content>
+          )
         ) : (
-          <ListItem.Content>
-            <ListItem.Title style={styles.placeholderText}>
-              {placeholder}
-            </ListItem.Title>
-          </ListItem.Content>
+          selectedPaymentMethod ? (
+            <>
+              <Text style={styles.selectedIcon}>
+                {getPaymentMethodIcon(selectedPaymentMethod.type)}
+              </Text>
+              <ListItem.Content>
+                <ListItem.Title style={styles.selectedText}>
+                  {selectedPaymentMethod.name}
+                </ListItem.Title>
+                <ListItem.Subtitle style={styles.selectedSubtext}>
+                  {getPaymentMethodTypeName(selectedPaymentMethod.type)}
+                  {selectedPaymentMethod.lastFourDigits && ` •••• ${selectedPaymentMethod.lastFourDigits}`}
+                </ListItem.Subtitle>
+              </ListItem.Content>
+            </>
+          ) : (
+            <ListItem.Content>
+              <ListItem.Title style={styles.placeholderText}>
+                {placeholder}
+              </ListItem.Title>
+            </ListItem.Content>
+          )
         )}
         <Icon
           name="chevron-down"
@@ -224,7 +267,13 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
           <ScrollView style={styles.modalContent}>
             {allowClear && (
               <ListItem
-                onPress={() => handlePaymentMethodSelect(null)}
+                onPress={() => {
+                  if (allowMultiple && onPaymentMethodsSelect) {
+                    onPaymentMethodsSelect([]);
+                  } else {
+                    handlePaymentMethodSelect(null);
+                  }
+                }}
                 containerStyle={[styles.paymentMethodItem, styles.clearItem]}
               >
                 <Icon
@@ -238,13 +287,40 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
                     Clear Selection
                   </ListItem.Title>
                 </ListItem.Content>
-                {!selectedPaymentMethodId && (
+                {(allowMultiple ? selectedPaymentMethodIds.length === 0 : !selectedPaymentMethodId) && (
                   <Icon name="check" type="feather" size={20} color="#007AFF" />
                 )}
               </ListItem>
             )}
 
-            {filteredPaymentMethods.map(renderPaymentMethodItem)}
+            {allowMultiple && filteredPaymentMethods.length > 0 && (
+              <ListItem
+                onPress={() => {
+                  if (onPaymentMethodsSelect) {
+                    onPaymentMethodsSelect(filteredPaymentMethods);
+                  }
+                }}
+                containerStyle={[styles.paymentMethodItem, styles.selectAllItem]}
+              >
+                <Icon
+                  name="check-square"
+                  type="feather"
+                  size={20}
+                  color="#007AFF"
+                />
+                <ListItem.Content>
+                  <ListItem.Title style={styles.selectAllText}>
+                    Select All
+                  </ListItem.Title>
+                </ListItem.Content>
+              </ListItem>
+            )}
+
+            {filteredPaymentMethods.map(paymentMethod => (
+              <React.Fragment key={paymentMethod.id}>
+                {renderPaymentMethodItem(paymentMethod)}
+              </React.Fragment>
+            ))}
 
             <ListItem
               onPress={() => setShowCreateModal(true)}
@@ -344,7 +420,7 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
           <View style={styles.colorGrid}>
             {PAYMENT_METHOD_COLORS.map((color, index) => (
               <TouchableOpacity
-                key={index}
+                key={color}
                 style={[
                   styles.colorButton,
                   { backgroundColor: color },
@@ -465,6 +541,15 @@ const styles = StyleSheet.create({
   clearText: {
     fontSize: 16,
     color: '#FF3B30',
+    marginLeft: 8,
+  },
+  selectAllItem: {
+    backgroundColor: '#F0F8FF',
+  },
+  selectAllText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
     marginLeft: 8,
   },
   emptyState: {

@@ -34,6 +34,10 @@ export const getCurrentWeek = (): DateRange => {
 };
 
 export const filterExpenses = (expenses: Expense[], filter: ExpenseFilter): Expense[] => {
+  if (!expenses || expenses.length === 0) {
+    return [];
+  }
+  
   return expenses.filter((expense) => {
     // Category filter
     if (filter.categories && filter.categories.length > 0) {
@@ -78,15 +82,28 @@ export const filterExpenses = (expenses: Expense[], filter: ExpenseFilter): Expe
       }
     }
 
+    // Payment methods filter
+    if (filter.paymentMethods && filter.paymentMethods.length > 0) {
+      if (!expense.paymentMethod || !filter.paymentMethods.includes(expense.paymentMethod.id)) {
+        return false;
+      }
+    }
+
     return true;
   });
 };
 
 export const calculateTotal = (expenses: Expense[]): number => {
+  if (!expenses || expenses.length === 0) {
+    return 0;
+  }
   return expenses.reduce((total, expense) => total + expense.amount, 0);
 };
 
 export const groupExpensesByCategory = (expenses: Expense[]): Record<string, Expense[]> => {
+  if (!expenses || expenses.length === 0) {
+    return {};
+  }
   return expenses.reduce((groups, expense) => {
     const categoryId = expense.category.id;
     if (!groups[categoryId]) {
@@ -110,6 +127,10 @@ export const validateExpense = (expense: Partial<Expense>): string[] => {
 
   if (!expense.category) {
     errors.push('Category is required');
+  }
+
+  if (!expense.paymentMethod) {
+    errors.push('Payment method is required');
   }
 
   if (!expense.date) {

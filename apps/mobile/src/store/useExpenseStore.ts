@@ -32,9 +32,11 @@ interface ExpenseState {
   isLoading: boolean;
   error: string | null;
   filter: ExpenseFilter | null;
+  isAppInitialized: boolean;
   
   // Actions
   initializeApp: () => Promise<void>;
+  resetInitialization: () => void;
   
   // Expense actions
   createExpense: (expense: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
@@ -98,12 +100,33 @@ export const useExpenseStore = create<ExpenseState>()(
     isLoading: false,
     error: null,
     filter: null,
+    isAppInitialized: false,
+
+    // Reset initialization state (for retry)
+    resetInitialization: () => {
+      set({ 
+        isLoading: false, 
+        error: null, 
+        isAppInitialized: false 
+      });
+    },
 
     // Initialize app
     initializeApp: async () => {
+      const state = get();
+      
+      // Prevent multiple concurrent initializations, but allow retry if there was an error
+      if (state.isLoading || (state.isAppInitialized && !state.error)) {
+        console.log('🔄 Initialization already in progress or completed, skipping...');
+        return;
+      }
+      
       try {
         console.log('🚀 Starting app initialization...');
         set({ isLoading: true, error: null });
+        
+        // Small delay to ensure React Native is fully ready
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         // Try full initialization with database
         try {
@@ -130,9 +153,30 @@ export const useExpenseStore = create<ExpenseState>()(
           await get().loadExpenses();
           
           console.log('🎉 App initialization completed successfully');
-          set({ isLoading: false });
+          set({ isLoading: false, isAppInitialized: true });
         } catch (dbError) {
-          console.warn('⚠️ Database initialization failed, using fallback mode:', dbError);
+          console.warn('⚠️ Database initialization failed:', dbError);
+          
+          // Try database reset as last resort
+          try {
+            console.log('🔄 Attempting database reset...');
+            const db = DatabaseManager.getInstance();
+            await db.resetDatabase();
+            
+            console.log('📊 Loading initial data after reset...');
+            await get().loadCategories();
+            await get().loadCurrencies();
+            await get().loadPaymentMethods();
+            await get().loadTags();
+            await get().loadUserPreferences();
+            await get().loadExpenses();
+            
+            console.log('✅ Database reset and initialization successful');
+            set({ isLoading: false, isAppInitialized: true });
+            return;
+          } catch (resetError) {
+            console.error('❌ Database reset also failed:', resetError);
+          }
           
           // Fallback initialization without database
           console.log('🔄 Initializing in offline mode...');
@@ -152,6 +196,7 @@ export const useExpenseStore = create<ExpenseState>()(
             },
             expenses: [],
             isLoading: false,
+            isAppInitialized: true,
             error: null // Clear error to allow app to function
           });
           
@@ -164,10 +209,29 @@ export const useExpenseStore = create<ExpenseState>()(
           message: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined
         });
-        set({ 
-          isLoading: false, 
-          error: error instanceof Error ? error.message : 'Critical initialization failed' 
+        // Even on critical error, try to initialize in offline mode
+        console.log('🔄 Attempting final fallback initialization...');
+        const defaultCurrency = DEFAULT_CURRENCIES.find(c => c.code === 'USD') || DEFAULT_CURRENCIES[0];
+        
+        set({
+          currencies: DEFAULT_CURRENCIES,
+          categories: DEFAULT_EXPENSE_CATEGORIES,
+          userPreferences: {
+            defaultCurrency,
+            theme: 'system',
+            language: 'en',
+            dateFormat: 'MMM dd, yyyy',
+            firstDayOfWeek: 0,
+          },
+          expenses: [],
+          paymentMethods: [],
+          tags: [],
+          isLoading: false,
+          isAppInitialized: true,
+          error: null // Clear error to allow app to function
         });
+        
+        console.log('✅ Final fallback initialization completed - app ready in offline mode');
       }
     },
 
@@ -250,7 +314,23 @@ export const useExpenseStore = create<ExpenseState>()(
           set({ isLoading: true, error: null });
         }
         
+        // Note: Removed initialization check here since this function is called during initialization
+        
         const db = DatabaseManager.getInstance();
+        
+        // Check if database is healthy, if not try to initialize
+        const isHealthy = await db.checkDatabaseHealth();
+        if (!isHealthy) {
+          console.log('🔄 Database not healthy, attempting initialization...');
+          await db.initialize();
+          
+          // Check again after initialization
+          const isHealthyAfterInit = await db.checkDatabaseHealth();
+          if (!isHealthyAfterInit) {
+            throw new Error('Database initialization failed - tables not created');
+          }
+        }
+        
         const expenses = await db.getExpenses(filter);
         
         set({ 
@@ -260,9 +340,20 @@ export const useExpenseStore = create<ExpenseState>()(
         });
       } catch (error) {
         console.error('Failed to load expenses:', error);
+        
+        // Provide more specific error message for table issues
+        let errorMessage = 'Failed to load expenses';
+        if (error instanceof Error) {
+          if (error.message.includes('no such table')) {
+            errorMessage = 'Database not initialized - tables missing. Please restart the app.';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
         set({ 
           isLoading: false, 
-          error: error instanceof Error ? error.message : 'Failed to load expenses' 
+          error: errorMessage
         });
       }
     },

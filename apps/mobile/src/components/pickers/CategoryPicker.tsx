@@ -17,18 +17,24 @@ const CATEGORY_COLORS = [
 
 interface CategoryPickerProps {
   selectedCategoryId?: string;
-  onCategorySelect: (category: ExpenseCategory | null) => void;
+  selectedCategoryIds?: string[];
+  onCategorySelect?: (category: ExpenseCategory | null) => void;
+  onCategoriesSelect?: (categories: ExpenseCategory[]) => void;
   placeholder?: string;
   allowClear?: boolean;
+  allowMultiple?: boolean;
   excludeCategories?: string[];
   style?: any;
 }
 
 const CategoryPicker: React.FC<CategoryPickerProps> = ({
   selectedCategoryId,
+  selectedCategoryIds = [],
   onCategorySelect,
+  onCategoriesSelect,
   placeholder = "Select Category",
   allowClear = true,
+  allowMultiple = false,
   excludeCategories = [],
   style
 }) => {
@@ -76,6 +82,7 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
   };
 
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
+  const selectedCategories = categories.filter(cat => selectedCategoryIds.includes(cat.id));
 
   const filteredCategories = categories.filter(category => {
     const matchesSearch = !searchQuery || 
@@ -85,14 +92,31 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
   });
 
   const handleCategorySelect = (category: ExpenseCategory | null) => {
-    onCategorySelect(category);
-    setIsVisible(false);
-    setSearchQuery('');
+    if (allowMultiple && onCategoriesSelect) {
+      if (!category) return;
+      
+      const currentSelected = categories.filter(cat => selectedCategoryIds.includes(cat.id));
+      const isSelected = selectedCategoryIds.includes(category.id);
+      
+      let newSelected: ExpenseCategory[];
+      if (isSelected) {
+        // Remove from selection
+        newSelected = currentSelected.filter(cat => cat.id !== category.id);
+      } else {
+        // Add to selection
+        newSelected = [...currentSelected, category];
+      }
+      
+      onCategoriesSelect(newSelected);
+    } else if (onCategorySelect) {
+      onCategorySelect(category);
+      setIsVisible(false);
+      setSearchQuery('');
+    }
   };
 
   const renderCategoryItem = (category: ExpenseCategory) => (
     <ListItem
-      key={category.id}
       onPress={() => handleCategorySelect(category)}
       containerStyle={styles.categoryItem}
     >
@@ -102,7 +126,7 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
           {category.name}
         </ListItem.Title>
       </ListItem.Content>
-      {selectedCategoryId === category.id && (
+      {(allowMultiple ? selectedCategoryIds.includes(category.id) : selectedCategoryId === category.id) && (
         <Icon name="check" type="feather" size={20} color="#007AFF" />
       )}
     </ListItem>
@@ -114,21 +138,40 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
         onPress={() => setIsVisible(true)}
         containerStyle={styles.pickerButton}
       >
-        {selectedCategory ? (
-          <>
-            <Text style={styles.selectedIcon}>{selectedCategory.icon || '📁'}</Text>
+        {allowMultiple ? (
+          selectedCategories.length > 0 ? (
             <ListItem.Content>
               <ListItem.Title style={styles.selectedText}>
-                {selectedCategory.name}
+                {selectedCategories.length === 1 
+                  ? selectedCategories[0].name
+                  : `${selectedCategories.length} categories selected`
+                }
               </ListItem.Title>
             </ListItem.Content>
-          </>
+          ) : (
+            <ListItem.Content>
+              <ListItem.Title style={styles.placeholderText}>
+                {placeholder}
+              </ListItem.Title>
+            </ListItem.Content>
+          )
         ) : (
-          <ListItem.Content>
-            <ListItem.Title style={styles.placeholderText}>
-              {placeholder}
-            </ListItem.Title>
-          </ListItem.Content>
+          selectedCategory ? (
+            <>
+              <Text style={styles.selectedIcon}>{selectedCategory.icon || '📁'}</Text>
+              <ListItem.Content>
+                <ListItem.Title style={styles.selectedText}>
+                  {selectedCategory.name}
+                </ListItem.Title>
+              </ListItem.Content>
+            </>
+          ) : (
+            <ListItem.Content>
+              <ListItem.Title style={styles.placeholderText}>
+                {placeholder}
+              </ListItem.Title>
+            </ListItem.Content>
+          )
         )}
         <Icon
           name="chevron-down"
@@ -175,7 +218,13 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
           <ScrollView style={styles.modalContent}>
             {allowClear && (
               <ListItem
-                onPress={() => handleCategorySelect(null)}
+                onPress={() => {
+                  if (allowMultiple && onCategoriesSelect) {
+                    onCategoriesSelect([]);
+                  } else {
+                    handleCategorySelect(null);
+                  }
+                }}
                 containerStyle={[styles.categoryItem, styles.clearItem]}
               >
                 <Icon
@@ -189,13 +238,40 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
                     Clear Selection
                   </ListItem.Title>
                 </ListItem.Content>
-                {!selectedCategoryId && (
+                {(allowMultiple ? selectedCategoryIds.length === 0 : !selectedCategoryId) && (
                   <Icon name="check" type="feather" size={20} color="#007AFF" />
                 )}
               </ListItem>
             )}
 
-            {filteredCategories.map(renderCategoryItem)}
+            {allowMultiple && filteredCategories.length > 0 && (
+              <ListItem
+                onPress={() => {
+                  if (onCategoriesSelect) {
+                    onCategoriesSelect(filteredCategories);
+                  }
+                }}
+                containerStyle={[styles.categoryItem, styles.selectAllItem]}
+              >
+                <Icon
+                  name="check-square"
+                  type="feather"
+                  size={20}
+                  color="#007AFF"
+                />
+                <ListItem.Content>
+                  <ListItem.Title style={styles.selectAllText}>
+                    Select All
+                  </ListItem.Title>
+                </ListItem.Content>
+              </ListItem>
+            )}
+
+            {filteredCategories.map(category => (
+              <React.Fragment key={category.id}>
+                {renderCategoryItem(category)}
+              </React.Fragment>
+            ))}
 
             <ListItem
               onPress={() => setShowCreateModal(true)}
@@ -217,8 +293,13 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
             {filteredCategories.length === 0 && (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>
-                  {searchQuery ? 'No matching categories found' : 'No categories available'}
+                  {searchQuery ? 'No matching categories found' : 'No categories yet'}
                 </Text>
+                {!searchQuery && (
+                  <Text style={styles.emptySubtext}>
+                    Create your first category above to get started
+                  </Text>
+                )}
               </View>
             )}
           </ScrollView>
@@ -311,7 +392,7 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
               </TouchableOpacity>
               {CATEGORY_ICONS.map((icon, index) => (
                 <TouchableOpacity
-                  key={index}
+                  key={icon}
                   style={[
                     styles.iconButton,
                     newCategoryData.icon === icon && styles.selectedIconButton,
@@ -339,7 +420,7 @@ const CategoryPicker: React.FC<CategoryPickerProps> = ({
           <View style={styles.colorGrid}>
             {CATEGORY_COLORS.map((color, index) => (
               <TouchableOpacity
-                key={index}
+                key={color}
                 style={[
                   styles.colorButton,
                   { backgroundColor: color },
@@ -450,6 +531,15 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     marginLeft: 8,
   },
+  selectAllItem: {
+    backgroundColor: '#F0F8FF',
+  },
+  selectAllText: {
+    fontSize: 16,
+    color: '#007AFF',
+    fontWeight: '500',
+    marginLeft: 8,
+  },
   emptyState: {
     padding: 40,
     alignItems: 'center',
@@ -458,6 +548,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#8E8E93',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   createItem: {
     backgroundColor: '#F0F8FF',

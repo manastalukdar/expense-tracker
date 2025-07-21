@@ -4,6 +4,7 @@ import HomeScreen from '../screens/HomeScreen';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
 import ExpenseListScreen from '../screens/ExpenseListScreen';
 import ReportsScreen from '../screens/ReportsScreen';
+import CustomReportsScreen from '../screens/CustomReportsScreen';
 import ManagementMenuScreen from '../screens/ManagementMenuScreen';
 import CategoryManagementScreen from '../screens/management/CategoryManagementScreen';
 import CategoryFormScreen from '../screens/management/CategoryFormScreen';
@@ -21,6 +22,11 @@ const AppNavigator = () => {
       <Stack.Screen name="AddExpense" component={AddExpenseScreen} />
       <Stack.Screen name="ExpenseList" component={ExpenseListScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />
+      <Stack.Screen 
+        name="CustomReports" 
+        component={CustomReportsScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen 
         name="ManagementMenu" 
         component={ManagementMenuScreen}

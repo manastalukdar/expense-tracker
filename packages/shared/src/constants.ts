@@ -12,24 +12,7 @@ export const DEFAULT_CURRENCIES: Currency[] = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
 ];
 
-export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  { id: 'food', name: 'Food & Dining', color: '#FF6B6B', icon: '🍽️' },
-  { id: 'groceries', name: 'Groceries', color: '#4ECDC4', icon: '🛒' },
-  { id: 'transportation', name: 'Transportation', color: '#45B7D1', icon: '🚗' },
-  { id: 'utilities', name: 'Utilities', color: '#96CEB4', icon: '💡' },
-  { id: 'entertainment', name: 'Entertainment', color: '#FFEAA7', icon: '🎬' },
-  { id: 'healthcare', name: 'Healthcare', color: '#DDA0DD', icon: '🏥' },
-  { id: 'shopping', name: 'Shopping', color: '#FAB1A0', icon: '🛍️' },
-  { id: 'education', name: 'Education', color: '#74B9FF', icon: '📚' },
-  { id: 'travel', name: 'Travel', color: '#A29BFE', icon: '✈️' },
-  { id: 'housing', name: 'Housing & Rent', color: '#6C5CE7', icon: '🏠' },
-  { id: 'insurance', name: 'Insurance', color: '#FD79A8', icon: '🛡️' },
-  { id: 'gifts', name: 'Gifts & Donations', color: '#FDCB6E', icon: '🎁' },
-  { id: 'fitness', name: 'Fitness & Sports', color: '#00B894', icon: '💪' },
-  { id: 'personal-care', name: 'Personal Care', color: '#E17055', icon: '💅' },
-  { id: 'business', name: 'Business', color: '#2D3436', icon: '💼' },
-  { id: 'other', name: 'Other', color: '#636E72', icon: '📄' },
-];
+export const DEFAULT_EXPENSE_CATEGORIES: ExpenseCategory[] = [];
 
 export const DATE_FORMATS = {
   SHORT: 'MMM dd',

@@ -118,22 +118,11 @@ export const CREATE_TABLES_SQL = `
 `;
 
 export const CREATE_INDEXES_SQL = `
-  -- Performance indexes
+  -- Essential performance indexes only
   CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
   CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category_id);
   CREATE INDEX IF NOT EXISTS idx_expenses_currency ON expenses(currency_code);
-  CREATE INDEX IF NOT EXISTS idx_expenses_payment_method ON expenses(payment_method_id);
-  CREATE INDEX IF NOT EXISTS idx_expenses_created_at ON expenses(created_at);
-  CREATE INDEX IF NOT EXISTS idx_expenses_vendor ON expenses(vendor);
   CREATE INDEX IF NOT EXISTS idx_categories_parent ON categories(parent_id);
-  CREATE INDEX IF NOT EXISTS idx_expense_tags_expense ON expense_tags(expense_id);
-  CREATE INDEX IF NOT EXISTS idx_expense_tags_tag ON expense_tags(tag_id);
-  CREATE INDEX IF NOT EXISTS idx_payment_methods_type ON payment_methods(type);
-  CREATE INDEX IF NOT EXISTS idx_payment_methods_active ON payment_methods(is_active);
-  CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
-  CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name);
-  CREATE INDEX IF NOT EXISTS idx_vendors_usage ON vendors(usage_count DESC);
-  CREATE INDEX IF NOT EXISTS idx_vendors_last_used ON vendors(last_used DESC);
 `;
 
 export const INSERT_DEFAULT_DATA_SQL = `
@@ -149,24 +138,6 @@ export const INSERT_DEFAULT_DATA_SQL = `
     ('CNY', '¥', 'Chinese Yuan'),
     ('INR', '₹', 'Indian Rupee');
 
-  -- Insert default categories
-  INSERT OR IGNORE INTO categories (id, name, color, icon) VALUES
-    ('food', 'Food & Dining', '#FF6B6B', '🍽️'),
-    ('groceries', 'Groceries', '#4ECDC4', '🛒'),
-    ('transportation', 'Transportation', '#45B7D1', '🚗'),
-    ('utilities', 'Utilities', '#96CEB4', '💡'),
-    ('entertainment', 'Entertainment', '#FFEAA7', '🎬'),
-    ('healthcare', 'Healthcare', '#DDA0DD', '🏥'),
-    ('shopping', 'Shopping', '#FAB1A0', '🛍️'),
-    ('education', 'Education', '#74B9FF', '📚'),
-    ('travel', 'Travel', '#A29BFE', '✈️'),
-    ('housing', 'Housing & Rent', '#6C5CE7', '🏠'),
-    ('insurance', 'Insurance', '#FD79A8', '🛡️'),
-    ('gifts', 'Gifts & Donations', '#FDCB6E', '🎁'),
-    ('fitness', 'Fitness & Sports', '#00B894', '💪'),
-    ('personal-care', 'Personal Care', '#E17055', '💅'),
-    ('business', 'Business', '#2D3436', '💼'),
-    ('other', 'Other', '#636E72', '📄');
 
   -- Insert default payment methods
   INSERT OR IGNORE INTO payment_methods (id, type, name, icon, color, is_default) VALUES

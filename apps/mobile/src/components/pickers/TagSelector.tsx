@@ -104,7 +104,6 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 
     return (
       <ListItem
-        key={tag.id}
         onPress={() => !isDisabled && handleTagToggle(tag)}
         containerStyle={[
           styles.tagItem,
@@ -246,7 +245,11 @@ const TagSelector: React.FC<TagSelectorProps> = ({
           />
 
           <ScrollView style={styles.modalContent}>
-            {filteredTags.map(renderTagItem)}
+            {filteredTags.map(tag => (
+              <React.Fragment key={tag.id}>
+                {renderTagItem(tag)}
+              </React.Fragment>
+            ))}
 
             <ListItem
               onPress={() => setShowCreateModal(true)}
@@ -349,7 +352,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
           <View style={styles.colorGrid}>
             {TAG_COLORS.map((color, index) => (
               <TouchableOpacity
-                key={index}
+                key={color}
                 style={[
                   styles.colorButton,
                   { backgroundColor: color },
