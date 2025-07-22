@@ -382,7 +382,7 @@ export class DatabaseManager {
 
     // Handle tags
     if (expense.tags && expense.tags.length > 0) {
-      await this.addTagsToExpense(id, expense.tags.map(tag => tag.id));
+      await this.addTagsToExpense(id, expense.tags.map((tag: Tag) => tag.id));
     }
 
     return id;
@@ -439,7 +439,7 @@ export class DatabaseManager {
     if (updates.tags !== undefined) {
       await this.db.executeSql('DELETE FROM expense_tags WHERE expense_id = ?', [id]);
       if (updates.tags.length > 0) {
-        await this.addTagsToExpense(id, updates.tags.map(tag => tag.id));
+        await this.addTagsToExpense(id, updates.tags.map((tag: Tag) => tag.id));
       }
     }
   }
