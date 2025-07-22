@@ -18,7 +18,7 @@
     "lint:fix": "npm run lint:fix --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "build": "tsc -b",
     "deps:check": "ncu --workspaces --root",
     "deps:update": "ncu --workspaces --root -u && rm -rf packages/*/node_modules && npm install",
     "deps:check-external": "ncu --workspaces --root --reject '@expense-tracker/*'",
