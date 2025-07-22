@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Text, ListItem, Icon, Button, SearchBar, Input, Overlay, ButtonGroup } from 'react-native-elements';
+import { Text, ListItem, Icon, Button, SearchBar, Input, Overlay } from 'react-native-elements';
 import { useExpenseStore } from '../../store/useExpenseStore';
 import { PaymentMethod, PaymentMethodFormData } from '@expense-tracker/shared';
 
@@ -369,13 +369,27 @@ const PaymentMethodPicker: React.FC<PaymentMethodPickerProps> = ({
           />
 
           <Text style={styles.sectionLabel}>Type</Text>
-          <ButtonGroup
-            buttons={PAYMENT_METHOD_TYPES.map(type => type.name)}
-            selectedIndex={selectedTypeIndex}
-            onPress={handleTypeSelection}
-            containerStyle={styles.typeButtonGroup}
-            selectedButtonStyle={styles.selectedTypeButton}
-          />
+          <View style={styles.typeButtonContainer}>
+            {PAYMENT_METHOD_TYPES.map((type, index) => (
+              <TouchableOpacity
+                key={type.type}
+                style={[
+                  styles.typeButton,
+                  selectedTypeIndex === index && styles.selectedTypeButton,
+                ]}
+                onPress={() => handleTypeSelection(index)}
+              >
+                <Text
+                  style={[
+                    styles.typeButtonText,
+                    selectedTypeIndex === index && styles.selectedTypeButtonText,
+                  ]}
+                >
+                  {type.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <TouchableOpacity
             style={styles.pickerRow}
@@ -596,13 +610,35 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 10,
   },
-  typeButtonGroup: {
+  typeButtonContainer: {
+    flexDirection: 'row',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
     marginBottom: 16,
-    height: 40,
+    overflow: 'hidden',
+  },
+  typeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    backgroundColor: '#f8f8f8',
+    borderRightWidth: 1,
+    borderRightColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   selectedTypeButton: {
     backgroundColor: '#007AFF',
+  },
+  typeButtonText: {
+    fontSize: 12,
+    color: '#333',
+    textAlign: 'center',
+  },
+  selectedTypeButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   pickerRow: {
     flexDirection: 'row',

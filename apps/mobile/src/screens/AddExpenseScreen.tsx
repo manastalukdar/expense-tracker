@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Input, Button, Header, Card, Text, ButtonGroup, Icon } from 'react-native-elements';
+import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { Input, Button, Header, Card, Text, Icon } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native';
 import { useExpenseStore } from '../store';
 import { CategoryPicker, PaymentMethodPicker, TagSelector, VendorPicker } from '../components/pickers';
@@ -93,7 +93,6 @@ const AddExpenseScreen = () => {
     }
   };
 
-  const currencyButtons = availableCurrencies.map(curr => curr.code);
 
   return (
     <ScrollView style={styles.container}>
@@ -181,13 +180,27 @@ const AddExpenseScreen = () => {
 
       <Card containerStyle={styles.currencyCard}>
         <Text style={styles.sectionTitle}>Currency</Text>
-        <ButtonGroup
-          buttons={currencyButtons}
-          selectedIndex={selectedCurrencyIndex}
-          onPress={setSelectedCurrencyIndex}
-          containerStyle={styles.buttonGroup}
-          selectedButtonStyle={styles.selectedButton}
-        />
+        <View style={styles.currencyButtonContainer}>
+          {availableCurrencies.map((currency, index) => (
+            <TouchableOpacity
+              key={currency.code}
+              style={[
+                styles.currencyButton,
+                selectedCurrencyIndex === index && styles.selectedCurrencyButton,
+              ]}
+              onPress={() => setSelectedCurrencyIndex(index)}
+            >
+              <Text
+                style={[
+                  styles.currencyButtonText,
+                  selectedCurrencyIndex === index && styles.selectedCurrencyButtonText,
+                ]}
+              >
+                {currency.code}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </Card>
 
       <View style={styles.buttonContainer}>
@@ -230,12 +243,34 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: 16,
   },
-  buttonGroup: {
+  currencyButtonContainer: {
+    flexDirection: 'row',
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
     marginBottom: 8,
+    overflow: 'hidden',
   },
-  selectedButton: {
+  currencyButton: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#f8f8f8',
+    borderRightWidth: 1,
+    borderRightColor: '#ddd',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedCurrencyButton: {
     backgroundColor: '#007AFF',
+  },
+  currencyButtonText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  selectedCurrencyButtonText: {
+    color: '#fff',
+    fontWeight: '600',
   },
   buttonContainer: {
     margin: 16,

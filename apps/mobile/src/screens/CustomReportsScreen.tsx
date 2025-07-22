@@ -179,94 +179,81 @@ const CustomReportsScreen: React.FC = () => {
 
 
   const getFilterChips = () => {
-    const chips: React.JSX.Element[] = [];
-    
-    if (currentFilter.dateRange) {
-      const label = `${formatDate(currentFilter.dateRange.startDate, 'MMM dd')} - ${formatDate(currentFilter.dateRange.endDate, 'MMM dd')}`;
-      chips.push(
-        <View key={label} style={styles.filterChip}>
-          <Text style={styles.filterChipText}>{label}</Text>
-          <Icon
-            name="x"
-            type="feather"
-            size={14}
-            color="#007AFF"
-            onPress={() => setCurrentFilter(prev => ({ ...prev, dateRange: undefined }))}
-            containerStyle={styles.filterChipIcon}
-          />
-        </View>
-      );
-    }
-    
-    if (currentFilter.categories?.length) {
-      const label = `${currentFilter.categories.length} categories`;
-      chips.push(
-        <View key={label} style={styles.filterChip}>
-          <Text style={styles.filterChipText}>{label}</Text>
-          <Icon
-            name="x"
-            type="feather"
-            size={14}
-            color="#007AFF"
-            onPress={() => setCurrentFilter(prev => ({ ...prev, categories: undefined }))}
-            containerStyle={styles.filterChipIcon}
-          />
-        </View>
-      );
-    }
-    
-    if (currentFilter.paymentMethods?.length) {
-      const label = `${currentFilter.paymentMethods.length} payment methods`;
-      chips.push(
-        <View key={label} style={styles.filterChip}>
-          <Text style={styles.filterChipText}>{label}</Text>
-          <Icon
-            name="x"
-            type="feather"
-            size={14}
-            color="#007AFF"
-            onPress={() => setCurrentFilter(prev => ({ ...prev, paymentMethods: undefined }))}
-            containerStyle={styles.filterChipIcon}
-          />
-        </View>
-      );
-    }
-    
-    if (currentFilter.tags?.length) {
-      const label = `${currentFilter.tags.length} tags`;
-      chips.push(
-        <View key={label} style={styles.filterChip}>
-          <Text style={styles.filterChipText}>{label}</Text>
-          <Icon
-            name="x"
-            type="feather"
-            size={14}
-            color="#007AFF"
-            onPress={() => setCurrentFilter(prev => ({ ...prev, tags: undefined }))}
-            containerStyle={styles.filterChipIcon}
-          />
-        </View>
-      );
-    }
-    
-    if (currentFilter.searchText) {
-      const label = `"${currentFilter.searchText}"`;
-      chips.push(
-        <View key={label} style={styles.filterChip}>
-          <Text style={styles.filterChipText}>{label}</Text>
-          <Icon
-            name="x"
-            type="feather"
-            size={14}
-            color="#007AFF"
-            onPress={() => setCurrentFilter(prev => ({ ...prev, searchText: undefined }))}
-            containerStyle={styles.filterChipIcon}
-          />
-        </View>
-      );
-    }
-
-    return chips;
+    return (
+      <>
+        {currentFilter.dateRange && (
+          <View key="dateRange" style={styles.filterChip}>
+            <Text style={styles.filterChipText}>
+              {`${formatDate(currentFilter.dateRange.startDate, 'MMM dd')} - ${formatDate(currentFilter.dateRange.endDate, 'MMM dd')}`}
+            </Text>
+            <Icon
+              name="x"
+              type="feather"
+              size={14}
+              color="#007AFF"
+              onPress={() => setCurrentFilter(prev => ({ ...prev, dateRange: undefined }))}
+              containerStyle={styles.filterChipIcon}
+            />
+          </View>
+        )}
+        
+        {currentFilter.categories?.length && (
+          <View key="categories" style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{`${currentFilter.categories.length} categories`}</Text>
+            <Icon
+              name="x"
+              type="feather"
+              size={14}
+              color="#007AFF"
+              onPress={() => setCurrentFilter(prev => ({ ...prev, categories: undefined }))}
+              containerStyle={styles.filterChipIcon}
+            />
+          </View>
+        )}
+        
+        {currentFilter.paymentMethods?.length && (
+          <View key="paymentMethods" style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{`${currentFilter.paymentMethods.length} payment methods`}</Text>
+            <Icon
+              name="x"
+              type="feather"
+              size={14}
+              color="#007AFF"
+              onPress={() => setCurrentFilter(prev => ({ ...prev, paymentMethods: undefined }))}
+              containerStyle={styles.filterChipIcon}
+            />
+          </View>
+        )}
+        
+        {currentFilter.tags?.length && (
+          <View key="tags" style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{`${currentFilter.tags.length} tags`}</Text>
+            <Icon
+              name="x"
+              type="feather"
+              size={14}
+              color="#007AFF"
+              onPress={() => setCurrentFilter(prev => ({ ...prev, tags: undefined }))}
+              containerStyle={styles.filterChipIcon}
+            />
+          </View>
+        )}
+        
+        {currentFilter.searchText && (
+          <View key="searchText" style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{`"${currentFilter.searchText}"`}</Text>
+            <Icon
+              name="x"
+              type="feather"
+              size={14}
+              color="#007AFF"
+              onPress={() => setCurrentFilter(prev => ({ ...prev, searchText: undefined }))}
+              containerStyle={styles.filterChipIcon}
+            />
+          </View>
+        )}
+      </>
+    );
   };
 
   const defaultCurrency = userPreferences?.defaultCurrency || { code: 'USD', symbol: '$', name: 'US Dollar' };
