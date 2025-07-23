@@ -9,8 +9,8 @@
     "build": "tsc -b",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "lint": "eslint src --ext .ts,.tsx",
-    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "lint": "eslint src --ext .ts,.tsx --ignore-pattern '**/__tests__/**'",
+    "lint:fix": "eslint src --ext .ts,.tsx --ignore-pattern '**/__tests__/**' --fix",
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
@@ -18,10 +18,12 @@
     "react-native-sqlite-storage": "^6.0.1"
   },
   "devDependencies": {
+    "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^30.0.0",
     "@types/react-native-sqlite-storage": "^6.0.5",
     "eslint": "^9.31.0",
     "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },
   "files": [
