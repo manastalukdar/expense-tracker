@@ -22,7 +22,7 @@
     "eslint": "^9.31.0",
     "jest": "^30.0.5",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^7.0.2"
   },
   "files": [
     "dist"
