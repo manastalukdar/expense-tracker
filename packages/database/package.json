@@ -18,7 +18,7 @@
     "react-native-sqlite-storage": "^6.0.1"
   },
   "devDependencies": {
-    "@testing-library/react-native": "^13.2.0",
+    "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^30.0.0",
     "@types/react-native-sqlite-storage": "^6.0.5",
     "eslint": "^9.31.0",
